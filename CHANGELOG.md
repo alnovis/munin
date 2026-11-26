@@ -8,6 +8,8 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-27
+
 ### Added
 - `munin list`: every entry in scope, newest first, without a search query;
   filters `--scope`, `--group`, `--kind`, `--inactive`, `--limit`
