@@ -8,6 +8,8 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-27
+
 ### Added
 - Memory store in one SQLite file (`~/.munin/munin.db`, or `$MUNIN_DB`):
   entries of kind `decision`, `architecture`, `bugfix` and `note`, owned by a

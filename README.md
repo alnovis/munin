@@ -53,17 +53,26 @@ stateDiagram-v2
 
 ## Quick start
 
-There is no release yet, so build from source:
+Take the archive for your platform (Apple Silicon or x86_64 Linux) from
+[Releases](https://github.com/alnovis/munin/releases) and put `munin` on your
+`PATH` ([details](docs/INSTALL.md#from-a-release)), or build from source:
 
 ```bash
 git clone https://github.com/alnovis/munin.git
 cd munin
 cargo install --locked --path .
+```
+
+Then connect it to the agent:
+
+```bash
 claude mcp add --scope user munin -- munin serve
 ```
 
-Then work as usual; the agent receives its instructions from Munin on
-connect. To see what it has recorded:
+The agent receives its instructions from Munin on connect. To make it use
+Munin without being asked, allow the tools and add the session-start hook
+described in [docs/INSTALL.md](docs/INSTALL.md#claude-code). To see what it
+has recorded:
 
 ```bash
 munin search <words>
