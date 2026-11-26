@@ -4,7 +4,7 @@ What a version number promises, and how a release is cut.
 
 ## Versions
 
-munin follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Munin follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Before 1.0 the minor number plays the role of the major one:
 
 | Change | Before 1.0 | From 1.0 |
@@ -16,7 +16,7 @@ Before 1.0 the minor number plays the role of the major one:
 A change is breaking when something that worked with the previous release
 stops working without the user changing anything:
 
-- **Database schema.** A new migration is always breaking: once a newer munin
+- **Database schema.** A new migration is always breaking: once a newer Munin
   opens the database, older releases refuse it. The changelog entry says so
   under `### Migration`, so the user knows a downgrade needs a backup made
   before the upgrade.

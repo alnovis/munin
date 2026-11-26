@@ -1,6 +1,6 @@
-![munin](docs/images/cover.png)
+![Munin](docs/images/cover.png)
 
-munin is local memory for AI coding agents. An agent searches it before
+Munin is local memory for AI coding agents. An agent searches it before
 unfamiliar work and records what it learned afterwards: decisions, how the
 system is built, bugs and their fixes. Everything lives in one SQLite file on
 your machine, and every MCP client on it shares the same memory.
@@ -28,7 +28,7 @@ your machine, and every MCP client on it shares the same memory.
 
 ## How it works
 
-Agents reach munin through MCP; people use the same binary from the shell.
+Agents reach Munin through MCP; people use the same binary from the shell.
 Both work on one database file.
 
 ```mermaid
@@ -62,7 +62,7 @@ cargo install --locked --path .
 claude mcp add --scope user munin -- munin serve
 ```
 
-Then work as usual; the agent receives its instructions from munin on
+Then work as usual; the agent receives its instructions from Munin on
 connect. To see what it has recorded:
 
 ```bash
@@ -82,7 +82,7 @@ munin show <id>
 
 ## Acknowledgements
 
-munin reimplements the ideas of
+Munin reimplements the ideas of
 [larchanka/memo-mcp](https://github.com/larchanka/memo-mcp) in Rust: the single
 SQLite file, two-stage retrieval, typed time decay and the shared tag
 vocabulary come from there.

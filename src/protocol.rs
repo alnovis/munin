@@ -1,7 +1,7 @@
-/// How an agent should use munin. Sent as the MCP server's `instructions`
+/// How an agent should use Munin. Sent as the MCP server's `instructions`
 /// and printed by `munin protocol`; keep it in step with the tools.
 pub const TEXT: &str = "\
-munin is your memory across sessions. It holds what earlier sessions learned
+Munin is your memory across sessions. It holds what earlier sessions learned
 about this project: decisions, how things are built, bugs and their fixes.
 
 BEFORE unfamiliar code, a non-trivial change, or an error you do not recognise:

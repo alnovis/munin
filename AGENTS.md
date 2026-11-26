@@ -5,7 +5,7 @@ read it too.
 
 ## Project
 
-munin is local, single-binary memory for AI coding agents: an MCP server over
+Munin is local, single-binary memory for AI coding agents: an MCP server over
 stdio plus a CLI, backed by one SQLite file. The design is in
 [docs/SPEC.md](docs/SPEC.md); read it before changing behaviour, and update it
 in the same change when behaviour changes.

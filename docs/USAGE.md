@@ -1,6 +1,6 @@
 # Usage
 
-What munin stores, how search finds it, and the command line around it.
+What Munin stores, how search finds it, and the command line around it.
 Agents use the same operations through MCP tools; the tool names are given
 next to each command.
 
@@ -66,7 +66,7 @@ The default is `group` when the current project belongs to a group, and
 
 ## Superseding and retracting
 
-Knowledge changes, but munin never edits an entry:
+Knowledge changes, but Munin never edits an entry:
 
 - When an entry is **outdated**, write the replacement with
   `--supersedes <id>` (`supersedes` in `append_memory`). The old entry becomes
@@ -132,7 +132,7 @@ munin tags
 munin protocol
 ```
 
-Exit codes: 0 on success, 1 when munin rejects the request (invalid input,
+Exit codes: 0 on success, 1 when Munin rejects the request (invalid input,
 not found, conflict), 2 on a malformed command line.
 
 ## Configuration

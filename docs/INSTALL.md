@@ -68,7 +68,7 @@ on.
 claude mcp add --scope user munin -- munin serve
 ```
 
-`--scope user` makes munin available in every project. Use the full path to
+`--scope user` makes Munin available in every project. Use the full path to
 the binary if `munin` is not on the `PATH` Claude Code sees.
 
 ### Codex
@@ -110,7 +110,7 @@ args = ["serve"]
 Run `munin protocol` and put its output into the client's own global
 instructions file. Keep it out of a shared repository's `AGENTS.md`: other
 contributors' agents would be told to call tools they do not have. Re-run it
-after upgrading munin, since the text follows the tools.
+after upgrading Munin, since the text follows the tools.
 
 ## Which project an entry lands in
 

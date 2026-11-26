@@ -1,6 +1,6 @@
 # Development
 
-How to check a change to munin and get it into `main`. Releases are in
+How to check a change to Munin and get it into `main`. Releases are in
 [RELEASING.md](RELEASING.md).
 
 ## Prerequisites
@@ -60,4 +60,4 @@ node scripts/cover.mjs
 Draws `docs/images/cover.svg` from the wordmark and `docs/images/raven.svg`,
 and renders `docs/images/cover.png` at 2560x1280 with headless Chrome
 (`CHROME` overrides the path). Node and Chrome are needed for this only, not
-for building munin. Colours: parchment `#ece3cf`, ink `#1d1a17`.
+for building Munin. Colours: parchment `#ece3cf`, ink `#1d1a17`.

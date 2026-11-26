@@ -1,4 +1,4 @@
-# munin -- specification v0.1 (draft)
+# Munin -- specification v0.1 (draft)
 
 Local, single-binary memory for AI coding agents. An agent searches it before
 unfamiliar work and records what it learned after. Exposed as an MCP server
@@ -9,9 +9,9 @@ back what Odin needs.
 
 ## 1. Starting point
 
-munin is a Rust reimplementation of the ideas in
+Munin is a Rust reimplementation of the ideas in
 [larchanka/memo-mcp](https://github.com/larchanka/memo-mcp) (TypeScript, MIT,
-v0.1.2). From it, munin keeps:
+v0.1.2). From it, Munin keeps:
 
 - one SQLite file, WAL mode, FTS5 with BM25 ranking;
 - two-stage retrieval: compact cards first, the full body by id on request;
@@ -19,9 +19,9 @@ v0.1.2). From it, munin keeps:
   `architecture` do not;
 - a shared tag vocabulary that agents read before writing.
 
-What munin changes, and why:
+What Munin changes, and why:
 
-| memo-mcp | munin | Reason |
+| memo-mcp | Munin | Reason |
 |---|---|---|
 | Entries can never change | Entries can be superseded or retracted | A wrong `decision` never decays and keeps winning searches |
 | No links between entries | `supersedes` field, chain visible on both ends | Knowledge evolves; the old entry must point to the new one |
@@ -158,7 +158,7 @@ Global flags: `--db PATH` overrides `$MUNIN_DB`; `--json` prints JSON
 instead of text. `--body-file -` reads the body from standard input. In
 search and tags, `--group G` alone means `--scope group --group G`.
 
-Exit codes: 0 on success, 1 on an error munin reports (invalid input, not
+Exit codes: 0 on success, 1 on an error Munin reports (invalid input, not
 found, conflict), 2 on a malformed command line.
 
 ### 6.1 Agent protocol
