@@ -1,7 +1,46 @@
 use std::fmt::Write;
 
 use munin::time::format_utc;
-use munin::{Card, Entry, EventKind, Group, Status, TagUse};
+use munin::{Brief, Card, Entry, EventKind, Group, Status, TagUse};
+
+// Plain statements, not instructions: a SessionStart hook passes this text to
+// the agent as context.
+pub fn brief(brief: &Brief) -> String {
+    let mut out = String::new();
+    let scope = if brief.groups.is_empty() {
+        format!("project {}", brief.project)
+    } else {
+        format!(
+            "project {} and its group {}",
+            brief.project,
+            brief.groups.join(", ")
+        )
+    };
+    let total = brief.active.total();
+    if total == 0 {
+        let _ = writeln!(out, "Munin has no entries for {scope} yet.");
+        return out;
+    }
+    let a = &brief.active;
+    let _ = writeln!(
+        out,
+        "Munin holds {total} active entries for {scope}: {} decision, {} architecture, {} bugfix, {} note.",
+        a.decision, a.architecture, a.bugfix, a.note
+    );
+    if !brief.tags.is_empty() {
+        let _ = writeln!(out, "Tags in use: {}.", brief.tags.join(", "));
+    }
+    if !brief.durable.is_empty() {
+        out.push_str("Newest decisions and architecture:\n");
+        for e in &brief.durable {
+            let _ = writeln!(out, "  #{} {} ({}): {}", e.id, e.kind, e.owner, e.summary);
+        }
+    }
+    out.push_str(
+        "search_memory finds entries by words, symbols or file paths; get_entry reads one in full.\n",
+    );
+    out
+}
 
 pub fn cards(cards: &[Card]) -> String {
     if cards.is_empty() {

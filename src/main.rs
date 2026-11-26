@@ -95,7 +95,13 @@ enum Command {
         #[arg(long)]
         limit: Option<usize>,
     },
-    /// Print the protocol agents follow when using munin
+    /// Summarise what memory holds for the current project, for agent context
+    Brief {
+        /// Current project [env: MUNIN_PROJECT] [default: git root or directory name]
+        #[arg(long)]
+        project: Option<String>,
+    },
+    /// Print the protocol agents follow when using Munin
     Protocol,
     /// Run the MCP server on standard input and output
     Serve,
@@ -254,6 +260,10 @@ fn run(cli: Cli) -> CliResult<()> {
                 now_ms(),
             )?;
             emit(json, &tags[..], render::tags)
+        }
+        Command::Brief { project } => {
+            let brief = store.brief(&current_project(project.as_deref())?, now_ms())?;
+            emit(json, &brief, render::brief)
         }
         Command::Group(command) => run_group(&mut store, command, json),
     }

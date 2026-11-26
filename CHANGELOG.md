@@ -26,3 +26,7 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
   `append_memory`, `retract_memory`, `get_active_tags` and `list_groups`; the
   agent protocol is sent as the server's `instructions`
 - Release archives for `aarch64-apple-darwin` and `x86_64-unknown-linux-musl`
+- `munin brief`: what memory holds for the current project (counts by kind,
+  tags in use, newest decisions), worded as context for a SessionStart hook
+- `skills/munin/SKILL.md` for agents without MCP, such as pi: the same
+  protocol, written as munin CLI commands

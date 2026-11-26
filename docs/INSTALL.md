@@ -71,6 +71,29 @@ claude mcp add --scope user munin -- munin serve
 `--scope user` makes Munin available in every project. Use the full path to
 the binary if `munin` is not on the `PATH` Claude Code sees.
 
+Three settings make the agent actually use it. In `~/.claude/settings.json`,
+allow the tools without a prompt each time, and tell the agent at session
+start what memory holds for the project:
+
+```json
+{
+  "permissions": { "allow": ["mcp__munin"] },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [
+        { "type": "command", "command": "/full/path/to/munin brief 2>/dev/null || true", "timeout": 5 }
+      ] }
+    ]
+  }
+}
+```
+
+If Claude Code's built-in memory is on, say in `~/.claude/CLAUDE.md` which
+memory holds what; otherwise the agent keeps writing where it is used to.
+For example: project knowledge (decisions, architecture, bugs and fixes) goes
+to Munin; facts about the user and how to work with them stay in built-in
+memory.
+
 ### Codex
 
 `~/.codex/config.toml`:
@@ -104,6 +127,13 @@ args = ["serve"]
   }
 }
 ```
+
+### Agents without MCP (pi)
+
+Agents that call command-line tools instead of MCP servers use Munin through
+its CLI. [`skills/munin/SKILL.md`](../skills/munin/SKILL.md) is the protocol
+written as `munin` commands; put it where the agent loads skills from, or
+link it there so it follows upgrades.
 
 ### Clients that ignore server instructions
 

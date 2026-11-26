@@ -128,6 +128,9 @@ munin retract 7 --reason "Measured: the cache never helped"
 # Tags in use, most recently used first
 munin tags
 
+# What memory holds for this project: counts, tags, newest decisions
+munin brief
+
 # What agents are told
 munin protocol
 ```

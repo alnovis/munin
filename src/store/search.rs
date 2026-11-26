@@ -91,6 +91,44 @@ pub struct TagUse {
     pub total: i64,
 }
 
+/// What memory holds for a project, in its default scope: enough for an
+/// agent to know that searching is worth it and with which words.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Brief {
+    pub project: String,
+    /// Groups the project belongs to; their entries are in scope.
+    pub groups: Vec<String>,
+    pub active: KindCounts,
+    pub tags: Vec<String>,
+    /// Newest active `decision` and `architecture` entries.
+    pub durable: Vec<BriefEntry>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+pub struct KindCounts {
+    pub decision: i64,
+    pub architecture: i64,
+    pub bugfix: i64,
+    pub note: i64,
+}
+
+impl KindCounts {
+    pub fn total(&self) -> i64 {
+        self.decision + self.architecture + self.bugfix + self.note
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct BriefEntry {
+    pub id: i64,
+    pub kind: Kind,
+    pub owner: Owner,
+    pub summary: String,
+}
+
+pub const BRIEF_TAGS: usize = 12;
+pub const BRIEF_DURABLE: i64 = 5;
+
 // Codes bound to :scope in SCOPE_FILTER.
 const SCOPE_PROJECT: i64 = 0;
 const SCOPE_OWN_GROUPS: i64 = 1;
@@ -218,6 +256,82 @@ impl Store {
             )?
             .collect::<rusqlite::Result<_>>()?;
         Ok(tags)
+    }
+
+    /// Summary of the active entries in the project's default scope.
+    pub fn brief(&self, project: &str, now_ms: i64) -> Result<Brief> {
+        let project = normalize_name("project", project)?;
+        let (scope, group) = self.resolve_scope(&project, None)?;
+
+        let mut active = KindCounts::default();
+        let sql = format!(
+            "SELECT e.kind, COUNT(*) FROM entries e
+             WHERE e.status = 'active' AND ({SCOPE_FILTER})
+             GROUP BY e.kind"
+        );
+        let counts = self
+            .conn
+            .prepare(&sql)?
+            .query_map(
+                named_params! { ":scope": scope, ":project": project, ":group": group },
+                |row| Ok((row.get::<_, Kind>(0)?, row.get::<_, i64>(1)?)),
+            )?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        for (kind, n) in counts {
+            match kind {
+                Kind::Decision => active.decision = n,
+                Kind::Architecture => active.architecture = n,
+                Kind::Bugfix => active.bugfix = n,
+                Kind::Note => active.note = n,
+            }
+        }
+
+        let sql = format!(
+            "SELECT e.id, e.project, e.group_name, e.kind, e.summary FROM entries e
+             WHERE e.status = 'active' AND e.kind IN ('decision', 'architecture')
+               AND ({SCOPE_FILTER})
+             ORDER BY e.created_at DESC, e.id DESC
+             LIMIT :limit"
+        );
+        let durable = self
+            .conn
+            .prepare(&sql)?
+            .query_map(
+                named_params! {
+                    ":scope": scope,
+                    ":project": project,
+                    ":group": group,
+                    ":limit": BRIEF_DURABLE,
+                },
+                |row| {
+                    Ok(BriefEntry {
+                        id: row.get(0)?,
+                        owner: owner_from_columns(row.get(1)?, row.get(2)?),
+                        kind: row.get(3)?,
+                        summary: row.get(4)?,
+                    })
+                },
+            )?
+            .collect::<rusqlite::Result<_>>()?;
+
+        let tags = self
+            .tags(&project, None, Some(BRIEF_TAGS), now_ms)?
+            .into_iter()
+            .map(|t| t.tag)
+            .collect();
+        let groups = self
+            .groups(Some(&project))?
+            .into_iter()
+            .map(|g| g.name)
+            .collect();
+
+        Ok(Brief {
+            project,
+            groups,
+            active,
+            tags,
+            durable,
+        })
     }
 
     fn resolve_scope(&self, project: &str, scope: Option<&Scope>) -> Result<(i64, Option<String>)> {
