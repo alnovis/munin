@@ -131,6 +131,11 @@ munin tags
 # What memory holds for this project: counts, tags, newest decisions
 munin brief
 
+# Every entry, newest first, without a query
+munin list                                  # current project (or its group)
+munin list --scope all --kind decision      # all decisions in every project
+munin list --inactive --limit 20            # include superseded and retracted
+
 # What agents are told
 munin protocol
 ```

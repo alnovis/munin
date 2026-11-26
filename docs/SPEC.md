@@ -147,6 +147,7 @@ munin show <id>                   # entry, chain, events
 munin add --kind K --summary S [--body B | --body-file F] [--tag T]... [--supersedes ID] [--project P] [--group G]
 munin retract <id> --reason R
 munin tags [--scope ...] [--group G] [--project P] [--limit N]
+munin list [--scope ...] [--group G] [--project P] [--kind K] [--inactive] [--limit N]   # newest first, no query
 munin brief [--project P]         # counts, tags, newest decisions; for a SessionStart hook
 munin protocol                    # print the agent protocol (section 6.1)
 munin group add <group> <project>...     # create the group if needed, add members

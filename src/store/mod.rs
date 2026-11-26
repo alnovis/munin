@@ -1,7 +1,9 @@
 mod schema;
 mod search;
 
-pub use search::{Brief, BriefEntry, Card, KindCounts, Scope, ScopeKind, SearchQuery, TagUse};
+pub use search::{
+    Brief, BriefEntry, Card, KindCounts, ListQuery, Listed, Scope, ScopeKind, SearchQuery, TagUse,
+};
 
 use std::path::Path;
 use std::time::Duration;

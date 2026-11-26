@@ -1,7 +1,35 @@
 use std::fmt::Write;
 
 use munin::time::format_utc;
-use munin::{Brief, Card, Entry, EventKind, Group, Status, TagUse};
+use munin::{Brief, Card, Entry, EventKind, Group, Listed, Status, TagUse};
+
+pub fn listed(listed: &[Listed]) -> String {
+    if listed.is_empty() {
+        return "no entries\n".to_owned();
+    }
+    let mut out = String::new();
+    for (i, item) in listed.iter().enumerate() {
+        if i > 0 {
+            out.push('\n');
+        }
+        let _ = write!(
+            out,
+            "#{}  {}  {}  {}d",
+            item.id, item.kind, item.owner, item.age_days
+        );
+        if item.status != Status::Active {
+            let _ = write!(out, "  [{}]", item.status);
+        }
+        let _ = writeln!(out, "\n    {}", item.summary);
+        if !item.tags.is_empty() {
+            let _ = writeln!(out, "    tags: {}", item.tags.join(", "));
+        }
+        if let Some(next) = item.superseded_by {
+            let _ = writeln!(out, "    superseded by #{next}");
+        }
+    }
+    out
+}
 
 // Plain statements, not instructions: a SessionStart hook passes this text to
 // the agent as context.

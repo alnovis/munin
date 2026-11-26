@@ -129,6 +129,32 @@ pub struct BriefEntry {
 pub const BRIEF_TAGS: usize = 12;
 pub const BRIEF_DURABLE: i64 = 5;
 
+/// Every entry in scope, newest first, without a search query.
+#[derive(Debug, Clone)]
+pub struct ListQuery {
+    /// The current project, already resolved by the caller.
+    pub project: String,
+    /// Same meaning and default as in `SearchQuery`.
+    pub scope: Option<Scope>,
+    pub kind: Option<Kind>,
+    pub include_inactive: bool,
+    /// `None` lists everything.
+    pub limit: Option<usize>,
+}
+
+/// One listed entry: a search card without a score.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Listed {
+    pub id: i64,
+    pub owner: Owner,
+    pub kind: Kind,
+    pub summary: String,
+    pub tags: Vec<String>,
+    pub age_days: i64,
+    pub status: Status,
+    pub superseded_by: Option<i64>,
+}
+
 // Codes bound to :scope in SCOPE_FILTER.
 const SCOPE_PROJECT: i64 = 0;
 const SCOPE_OWN_GROUPS: i64 = 1;
@@ -332,6 +358,64 @@ impl Store {
             tags,
             durable,
         })
+    }
+
+    pub fn list(&self, query: &ListQuery, now_ms: i64) -> Result<Vec<Listed>> {
+        let project = normalize_name("project", &query.project)?;
+        let (scope, group) = self.resolve_scope(&project, query.scope.as_ref())?;
+        let limit: i64 = match query.limit {
+            None => -1,
+            Some(0) => return Err(Error::invalid("limit", "got 0, expected at least 1")),
+            Some(n) => i64::try_from(n).unwrap_or(i64::MAX),
+        };
+
+        let sql = format!(
+            "SELECT e.id, e.project, e.group_name, e.kind, e.summary, e.created_at, e.status,
+                    (SELECT s.id FROM entries s WHERE s.supersedes = e.id)
+             FROM entries e
+             WHERE (:inactive OR e.status = 'active')
+               AND (:kind IS NULL OR e.kind = :kind)
+               AND ({SCOPE_FILTER})
+             ORDER BY e.created_at DESC, e.id DESC
+             LIMIT :limit"
+        );
+        let mut listed = self
+            .conn
+            .prepare(&sql)?
+            .query_map(
+                named_params! {
+                    ":inactive": query.include_inactive,
+                    ":kind": query.kind.map(Kind::as_str),
+                    ":scope": scope,
+                    ":project": project,
+                    ":group": group,
+                    ":limit": limit,
+                },
+                |row| {
+                    let created_at: i64 = row.get(5)?;
+                    Ok(Listed {
+                        id: row.get(0)?,
+                        owner: owner_from_columns(row.get(1)?, row.get(2)?),
+                        kind: row.get(3)?,
+                        summary: row.get(4)?,
+                        tags: Vec::new(),
+                        age_days: (now_ms - created_at).max(0) / MS_PER_DAY,
+                        status: row.get(6)?,
+                        superseded_by: row.get(7)?,
+                    })
+                },
+            )?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+
+        let mut tags = self
+            .conn
+            .prepare("SELECT tag FROM entry_tags WHERE entry_id = ?1 ORDER BY rowid")?;
+        for item in &mut listed {
+            item.tags = tags
+                .query_map([item.id], |row| row.get(0))?
+                .collect::<rusqlite::Result<_>>()?;
+        }
+        Ok(listed)
     }
 
     fn resolve_scope(&self, project: &str, scope: Option<&Scope>) -> Result<(i64, Option<String>)> {

@@ -10,7 +10,9 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::Serialize;
 
 use munin::time::now_ms;
-use munin::{Kind, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, mcp, project, protocol};
+use munin::{
+    Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, mcp, project, protocol,
+};
 
 type CliResult<T> = std::result::Result<T, Box<dyn StdError>>;
 
@@ -92,6 +94,23 @@ enum Command {
         #[arg(long)]
         project: Option<String>,
         /// Number of tags, 1 to 200 [default: 40]
+        #[arg(long)]
+        limit: Option<usize>,
+    },
+    /// List every entry in scope, newest first, without a search query
+    List {
+        #[command(flatten)]
+        scope: ScopeArgs,
+        /// Current project [env: MUNIN_PROJECT] [default: git root or directory name]
+        #[arg(long)]
+        project: Option<String>,
+        /// Only entries of this kind: decision, architecture, bugfix or note
+        #[arg(long)]
+        kind: Option<Kind>,
+        /// Include superseded and retracted entries
+        #[arg(long)]
+        inactive: bool,
+        /// At most this many entries [default: all]
         #[arg(long)]
         limit: Option<usize>,
     },
@@ -260,6 +279,25 @@ fn run(cli: Cli) -> CliResult<()> {
                 now_ms(),
             )?;
             emit(json, &tags[..], render::tags)
+        }
+        Command::List {
+            scope,
+            project,
+            kind,
+            inactive,
+            limit,
+        } => {
+            let listed = store.list(
+                &ListQuery {
+                    project: current_project(project.as_deref())?,
+                    scope: scope.resolve()?,
+                    kind,
+                    include_inactive: inactive,
+                    limit,
+                },
+                now_ms(),
+            )?;
+            emit(json, &listed[..], render::listed)
         }
         Command::Brief { project } => {
             let brief = store.brief(&current_project(project.as_deref())?, now_ms())?;
