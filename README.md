@@ -1,4 +1,7 @@
-![Munin](docs/images/cover.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/cover-dark.png">
+  <img alt="Munin" src="docs/images/cover.png">
+</picture>
 
 Munin is local memory for AI coding agents. An agent searches it before
 unfamiliar work and records what it learned afterwards: decisions, how the

@@ -57,7 +57,11 @@ of the memory you use for real work.
 node scripts/cover.mjs
 ```
 
-Draws `docs/images/cover.svg` from the wordmark and `docs/images/raven.svg`,
-and renders `docs/images/cover.png` at 2560x1280 with headless Chrome
-(`CHROME` overrides the path). Node and Chrome are needed for this only, not
-for building Munin. Colours: parchment `#ece3cf`, ink `#1d1a17`.
+Draws the cover from the wordmark and `docs/images/raven.svg` in two
+variants: `cover` (ink on parchment, for the light GitHub theme) and
+`cover-dark` (parchment on ink, for the dark one). Each is written as
+`docs/images/<name>.svg` and rendered to `<name>.png` at 2560x1280 with
+headless Chrome (`CHROME` overrides the path). The README picks one with a
+`<picture>` element and `prefers-color-scheme`. Node and Chrome are needed
+for this only, not for building Munin. Colours: parchment `#ece3cf`, ink
+`#1d1a17`.
