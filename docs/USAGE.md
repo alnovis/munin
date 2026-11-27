@@ -263,7 +263,7 @@ The database is a single SQLite file in WAL mode. `sqlite3` copies it safely
 even while an agent is using it:
 
 ```bash
-sqlite3 ~/.munin/munin.db ".backup '$HOME/munin-backup.db'"
+sqlite3 ~/.munin/munin.db ".backup '$HOME/.munin/munin-backup.db'"
 ```
 
 To look inside without any risk of changing it:
