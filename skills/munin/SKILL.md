@@ -33,8 +33,10 @@ EOF
 
 - `--kind`: `decision` (a choice that holds until replaced),
   `architecture` (how the system is built), `bugfix` (problem, cause, fix),
-  `note` (anything else). `decision` and `architecture` never fade; `bugfix`
-  and `note` fade over about a month.
+  `note` (anything else), `howto` (steps to do something again: commands in
+  order, `<placeholders>` for what changes each time). `decision`,
+  `architecture` and `howto` never fade; `bugfix` and `note` fade over about
+  a month.
 - `--summary`: one line, at most 200 characters.
 - `--tag`: at most 6.
 - `--group <name>` instead of the project, when a decision spans the

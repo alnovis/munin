@@ -58,7 +58,7 @@ enum Command {
     Show { id: i64 },
     /// Record a new entry
     Add {
-        /// decision, architecture, bugfix or note
+        /// decision, architecture, bugfix, note or howto
         #[arg(long)]
         kind: Kind,
         /// One line, at most 200 characters
@@ -106,7 +106,7 @@ enum Command {
         /// Current project [env: MUNIN_PROJECT] [default: git root or directory name]
         #[arg(long)]
         project: Option<String>,
-        /// Only entries of this kind: decision, architecture, bugfix or note
+        /// Only entries of this kind: decision, architecture, bugfix, note or howto
         #[arg(long)]
         kind: Option<Kind>,
         /// Include superseded and retracted entries

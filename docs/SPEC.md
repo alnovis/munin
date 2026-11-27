@@ -57,7 +57,7 @@ Entry:
 | `id` | integer | Assigned on insert, never reused |
 | `project` | text, nullable | Normalized like a tag |
 | `group` | text, nullable | Name of an existing group |
-| `kind` | enum | `decision`, `architecture`, `bugfix`, `note` |
+| `kind` | enum | `decision`, `architecture`, `bugfix`, `note`, `howto` |
 | `summary` | text | One line, at most 200 characters |
 | `body` | text | Markdown, may be empty |
 | `tags` | set of text | 0-6 items, `[a-z0-9-_/@]`, lower case |
@@ -108,8 +108,8 @@ that project (section 4). A group that still owns entries cannot be deleted.
   scopes.
 - Status: only `active` entries by default; `include_inactive: true` returns
   superseded and retracted entries too, marked as such.
-- Score: `bm25_relevance x decay`, where decay is 1 for `decision` and
-  `architecture`, and `0.5 ^ (age_days / half_life)` for `bugfix` and `note`
+- Score: `bm25_relevance x decay`, where decay is 1 for `decision`,
+  `architecture` and `howto`, and `0.5 ^ (age_days / half_life)` for `bugfix` and `note`
   (half-life 30 days, configurable). `deep_history: true` sets decay to 1 for
   all kinds.
 - Ranking is computed over all matches before the limit is applied.

@@ -28,6 +28,7 @@ optional Markdown `body`, up to 6 tags and a kind.
 | `architecture` | how the system is built | no |
 | `bugfix` | a problem, its cause and the fix | yes, half its weight every 30 days |
 | `note` | anything else | yes, half its weight every 30 days |
+| `howto` | steps to do something again: commands in order, `<placeholders>` for what changes | no |
 
 Every entry belongs to a project, or to a group of projects (see
 [Groups](#groups)). The content of an entry never changes after it is

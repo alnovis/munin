@@ -24,6 +24,9 @@ pub enum Error {
     #[error("database schema {found} is newer than this build of munin (knows up to {known})")]
     NewerSchema { found: i64, known: i64 },
 
+    #[error("migration to schema {version} failed: {detail}")]
+    Migration { version: i64, detail: String },
+
     #[error(transparent)]
     Sqlite(#[from] rusqlite::Error),
 

@@ -14,7 +14,8 @@ your machine, and every MCP client on it shares the same memory.
   compact cards; the full entry is read only when a card looks relevant, so
   looking costs few tokens.
 - **Old fixes fade, decisions stay.** `bugfix` and `note` entries lose half
-  their weight every 30 days; `decision` and `architecture` never do. Age is
+  their weight every 30 days; `decision`, `architecture` and `howto`
+  (step-by-step procedures) never do. Age is
   applied to every match before the limit, so one old decision is not pushed
   out by a pile of stale fixes.
 - **Nothing is overwritten.** A new entry supersedes an outdated one and the

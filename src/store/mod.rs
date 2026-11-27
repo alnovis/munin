@@ -396,9 +396,31 @@ fn migrate(conn: &mut Connection) -> Result<()> {
             known,
         });
     }
+    if current == known {
+        return Ok(());
+    }
+    // Foreign keys cannot be switched inside a transaction; with them on,
+    // dropping a rebuilt table would fail on the rows that reference it.
+    conn.pragma_update(None, "foreign_keys", false)?;
+    let result = run_migrations(conn, current);
+    conn.pragma_update(None, "foreign_keys", true)?;
+    result
+}
+
+fn run_migrations(conn: &mut Connection, current: i64) -> Result<()> {
     for (index, sql) in schema::MIGRATIONS.iter().enumerate().skip(current as usize) {
         let tx = conn.transaction()?;
         tx.execute_batch(sql)?;
+        let broken: i64 =
+            tx.query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| {
+                row.get(0)
+            })?;
+        if broken > 0 {
+            return Err(Error::Migration {
+                version: index as i64 + 1,
+                detail: format!("{broken} rows break foreign keys"),
+            });
+        }
         tx.pragma_update(None, "user_version", index as i64 + 1)?;
         tx.commit()?;
     }

@@ -56,8 +56,8 @@ pub fn brief(brief: &Brief) -> String {
     let a = &brief.active;
     let _ = writeln!(
         out,
-        "Munin holds {total} active entries for {scope}: {} decision, {} architecture, {} bugfix, {} note.",
-        a.decision, a.architecture, a.bugfix, a.note
+        "Munin holds {total} active entries for {scope}: {} decision, {} architecture, {} bugfix, {} note, {} howto.",
+        a.decision, a.architecture, a.bugfix, a.note, a.howto
     );
     if !brief.tags.is_empty() {
         let _ = writeln!(out, "Tags in use: {}.", brief.tags.join(", "));

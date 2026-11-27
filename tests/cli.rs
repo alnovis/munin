@@ -253,7 +253,7 @@ fn invalid_input_names_the_problem() {
     let (code, err) = sb.fail(&["add", "--kind", "adr", "--summary", "x"]);
     assert_eq!(code, 2, "usage errors come from argument parsing");
     assert!(
-        err.contains("decision, architecture, bugfix, note"),
+        err.contains("decision, architecture, bugfix, note, howto"),
         "{err}"
     );
 

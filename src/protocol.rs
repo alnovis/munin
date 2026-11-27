@@ -16,8 +16,10 @@ AFTER a milestone, a fix, or a decision, call append_memory:
         architecture  how the system is built
         bugfix        a problem, its cause and the fix
         note          anything else worth knowing next time
-  decision and architecture never fade; bugfix and note fade over about a
-  month.
+        howto         steps to do something again: commands, in order,
+                      with <placeholders> for what changes each time
+  decision, architecture and howto never fade; bugfix and note fade over
+  about a month.
 - summary: one line a future reader can judge relevance by.
 - body: context, what was tried, why this choice. Exact names, paths and
   commands beat paraphrase.

@@ -111,11 +111,12 @@ pub struct KindCounts {
     pub architecture: i64,
     pub bugfix: i64,
     pub note: i64,
+    pub howto: i64,
 }
 
 impl KindCounts {
     pub fn total(&self) -> i64 {
-        self.decision + self.architecture + self.bugfix + self.note
+        self.decision + self.architecture + self.bugfix + self.note + self.howto
     }
 }
 
@@ -309,6 +310,7 @@ impl Store {
                 Kind::Architecture => active.architecture = n,
                 Kind::Bugfix => active.bugfix = n,
                 Kind::Note => active.note = n,
+                Kind::Howto => active.howto = n,
             }
         }
 
@@ -599,6 +601,7 @@ mod tests {
         let old = 3650 * MS_PER_DAY;
         assert_eq!(decay(Kind::Decision, old, 30.0, false), 1.0);
         assert_eq!(decay(Kind::Architecture, old, 30.0, false), 1.0);
+        assert_eq!(decay(Kind::Howto, old, 30.0, false), 1.0);
         assert_eq!(decay(Kind::Note, old, 30.0, true), 1.0);
     }
 }

@@ -28,12 +28,12 @@ fn open_creates_and_reopens() {
 
     let id = {
         let mut store = Store::open(&path).unwrap();
-        assert_eq!(store.schema_version().unwrap(), 1);
+        assert_eq!(store.schema_version().unwrap(), 2);
         store.append(&entry("scry", "first"), T0).unwrap()
     };
 
     let store = Store::open(&path).unwrap();
-    assert_eq!(store.schema_version().unwrap(), 1);
+    assert_eq!(store.schema_version().unwrap(), 2);
     assert_eq!(store.get(id).unwrap().summary, "first");
 }
 
@@ -54,7 +54,7 @@ fn open_refuses_newer_schema() {
             err,
             Error::NewerSchema {
                 found: 99,
-                known: 1
+                known: 2
             }
         ),
         "{err}"
@@ -140,7 +140,7 @@ fn kind_parsing() {
     assert!(matches!(err, Error::Invalid { field: "kind", .. }));
     assert!(
         err.to_string()
-            .contains("decision, architecture, bugfix, note")
+            .contains("decision, architecture, bugfix, note, howto")
     );
 }
 

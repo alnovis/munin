@@ -31,6 +31,7 @@ pub enum KindParam {
     Architecture,
     Bugfix,
     Note,
+    Howto,
 }
 
 impl From<KindParam> for Kind {
@@ -40,6 +41,7 @@ impl From<KindParam> for Kind {
             KindParam::Architecture => Kind::Architecture,
             KindParam::Bugfix => Kind::Bugfix,
             KindParam::Note => Kind::Note,
+            KindParam::Howto => Kind::Howto,
         }
     }
 }
@@ -92,7 +94,7 @@ pub struct EntryParams {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct AppendParams {
-    /// decision and architecture never fade; bugfix and note fade over about a month.
+    /// decision, architecture and howto never fade; bugfix and note fade over about a month.
     pub kind: KindParam,
     /// One line, at most 200 characters.
     pub summary: String,
@@ -172,7 +174,7 @@ impl Server {
     }
 
     #[tool(
-        description = "Record a decision, architecture fact, bug fix or note after finishing work. Use supersedes to replace an outdated entry."
+        description = "Record a decision, architecture fact, bug fix, note or how-to after finishing work. Use supersedes to replace an outdated entry."
     )]
     async fn append_memory(&self, Parameters(p): Parameters<AppendParams>) -> ToolResult {
         let new = NewEntry {

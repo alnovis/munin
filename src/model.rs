@@ -16,6 +16,7 @@ pub enum Kind {
     Architecture,
     Bugfix,
     Note,
+    Howto,
 }
 
 impl Kind {
@@ -25,6 +26,7 @@ impl Kind {
             Kind::Architecture => "architecture",
             Kind::Bugfix => "bugfix",
             Kind::Note => "note",
+            Kind::Howto => "howto",
         }
     }
 
@@ -43,9 +45,10 @@ impl FromStr for Kind {
             "architecture" => Ok(Kind::Architecture),
             "bugfix" => Ok(Kind::Bugfix),
             "note" => Ok(Kind::Note),
+            "howto" => Ok(Kind::Howto),
             _ => Err(Error::invalid(
                 "kind",
-                format!("got {s:?}, expected one of: decision, architecture, bugfix, note"),
+                format!("got {s:?}, expected one of: decision, architecture, bugfix, note, howto"),
             )),
         }
     }

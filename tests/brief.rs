@@ -69,7 +69,8 @@ fn counts_tags_and_durable_entries() {
             decision: 1,
             architecture: 1,
             bugfix: 1,
-            note: 0
+            note: 0,
+            howto: 0
         }
     );
     let ids: Vec<i64> = brief.durable.iter().map(|e| e.id).collect();
