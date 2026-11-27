@@ -1,8 +1,49 @@
+use std::fmt::Write;
 use std::fs;
 
 use serde_json::Value;
 
+use crate::store::Card;
+use crate::tasks::{TaskId, TaskPatterns};
 use crate::time::parse_utc_ms;
+
+/// Decides the UserPromptSubmit hook: for every task number `patterns` find
+/// in the prompt, `find(id, cwd)` returns its entries; the found ones are
+/// printed as context for the agent. Returns `None` when there is nothing to
+/// add.
+pub fn prompt(
+    input: &str,
+    patterns: &TaskPatterns,
+    find: impl Fn(&TaskId, &str) -> Vec<Card>,
+) -> Option<String> {
+    let input: Value = serde_json::from_str(input).ok()?;
+    let cwd = input["cwd"].as_str().unwrap_or_default();
+    let found: Vec<(TaskId, Vec<Card>)> = patterns
+        .find(input["prompt"].as_str()?)
+        .into_iter()
+        .map(|id| {
+            let cards = find(&id, cwd);
+            (id, cards)
+        })
+        .filter(|(_, cards)| !cards.is_empty())
+        .collect();
+    if found.is_empty() {
+        return None;
+    }
+    let mut out = String::from("Munin has entries for task numbers in this prompt:\n");
+    for (id, cards) in &found {
+        let _ = writeln!(out, "{}:", id.tag);
+        for c in cards {
+            let _ = write!(out, "  #{} {} ({}), {}d", c.id, c.kind, c.owner, c.age_days);
+            if c.status != crate::Status::Active {
+                let _ = write!(out, " [{}]", c.status);
+            }
+            let _ = writeln!(out, ": {}", c.summary);
+        }
+    }
+    out.push_str("get_entry reads one in full.\n");
+    Some(out)
+}
 
 /// Tools that change files.
 const EDIT_TOOLS: [&str; 4] = ["Edit", "MultiEdit", "Write", "NotebookEdit"];
@@ -288,5 +329,63 @@ mod tests {
     #[test]
     fn texts_are_ascii() {
         assert!(STOP_REASON.is_ascii() && PRE_COMPACT.is_ascii());
+    }
+
+    fn card(id: i64, summary: &str, status: crate::Status) -> Card {
+        Card {
+            id,
+            owner: crate::Owner::Project("scry".to_owned()),
+            kind: crate::Kind::Bugfix,
+            summary: summary.to_owned(),
+            tags: Vec::new(),
+            age_days: 3,
+            score: 1.0,
+            status,
+            superseded_by: None,
+        }
+    }
+
+    #[test]
+    fn prompt_lists_entries_per_task() {
+        let input =
+            serde_json::json!({"prompt": "continue ABC-1 and ABC-2", "cwd": "/w/scry"}).to_string();
+        let out = super::prompt(&input, &TaskPatterns::builtin(), |id, cwd| {
+            assert_eq!(cwd, "/w/scry");
+            match id.tag.as_str() {
+                "abc-1" => vec![
+                    card(7, "[ABC-1] cache miss", crate::Status::Active),
+                    card(5, "[ABC-1] first guess", crate::Status::Retracted),
+                ],
+                _ => Vec::new(),
+            }
+        })
+        .unwrap();
+        assert!(out.contains("abc-1:\n"), "{out}");
+        assert!(
+            out.contains("#7 bugfix (project scry), 3d: [ABC-1] cache miss"),
+            "{out}"
+        );
+        assert!(
+            out.contains("#5 bugfix (project scry), 3d [retracted]: [ABC-1] first guess"),
+            "{out}"
+        );
+        assert!(
+            !out.contains("abc-2"),
+            "tasks without entries are left out: {out}"
+        );
+    }
+
+    #[test]
+    fn prompt_is_silent_without_findings() {
+        let p = TaskPatterns::builtin();
+        let none = |_: &TaskId, _: &str| Vec::new();
+        let with_task = serde_json::json!({"prompt": "ABC-1"}).to_string();
+        let without = serde_json::json!({"prompt": "just a question"}).to_string();
+        assert_eq!(super::prompt(&with_task, &p, none), None);
+        assert_eq!(
+            super::prompt(&without, &p, |_, _| panic!("no task, no lookup")),
+            None
+        );
+        assert_eq!(super::prompt("not json", &p, none), None);
     }
 }

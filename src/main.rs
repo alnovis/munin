@@ -9,10 +9,11 @@ use std::process::ExitCode;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::Serialize;
 
+use munin::tasks::{TaskId, TaskPatterns, TaskScope};
 use munin::time::now_ms;
 use munin::{
-    Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, hook, mcp, project,
-    protocol,
+    Card, Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, hook, mcp,
+    project, protocol,
 };
 
 type CliResult<T> = std::result::Result<T, Box<dyn StdError>>;
@@ -121,6 +122,8 @@ enum Command {
         #[arg(long)]
         project: Option<String>,
     },
+    /// Show the task number formats in effect (~/.munin/config.toml or built in)
+    Config,
     /// Print the protocol agents follow when using Munin
     Protocol,
     /// Run the MCP server on standard input and output
@@ -140,6 +143,9 @@ enum HookCommand {
     Stop,
     /// PreCompact hook: prints instructions for the compaction summary
     PreCompact,
+    /// UserPromptSubmit hook: reads the hook input on stdin and prints the
+    /// entries for task numbers in the prompt (PROJ-123, gh-6, #6)
+    Prompt,
 }
 
 #[derive(Subcommand)]
@@ -231,12 +237,41 @@ fn run(cli: Cli) -> CliResult<()> {
             println!("{}", hook::PRE_COMPACT);
             return Ok(());
         }
+        Command::Hook(HookCommand::Prompt) => {
+            let mut input = String::new();
+            if std::io::stdin().read_to_string(&mut input).is_err() {
+                return Ok(());
+            }
+            let Ok(patterns) = task_patterns() else {
+                return Ok(());
+            };
+            let Ok(store) = open_store(cli.db) else {
+                return Ok(());
+            };
+            if let Some(context) =
+                hook::prompt(&input, &patterns, |id, cwd| task_entries(&store, id, cwd))
+            {
+                print!("{context}");
+            }
+            return Ok(());
+        }
+        Command::Config => {
+            let path = config::config_path(env::var_os(config::ENV_CONFIG), env::var_os("HOME"))?;
+            let patterns = TaskPatterns::load(&path)?;
+            let source = if patterns.configured {
+                format!("from {}", path.display())
+            } else {
+                format!("built in (no [[task]] rules in {})", path.display())
+            };
+            print!("Task number formats, {source}:\n{}", patterns.describe());
+            return Ok(());
+        }
         _ => {}
     }
     let mut store = open_store(cli.db)?;
 
     match cli.command {
-        Command::Protocol | Command::Hook(_) => unreachable!("handled above"),
+        Command::Protocol | Command::Hook(_) | Command::Config => unreachable!("handled above"),
         Command::Serve => {
             let server = mcp::Server::new(
                 store,
@@ -336,7 +371,20 @@ fn run(cli: Cli) -> CliResult<()> {
         }
         Command::Brief { project } => {
             let brief = store.brief(&current_project(project.as_deref())?, now_ms())?;
-            emit(json, &brief, render::brief)
+            // Custom task formats are not in the protocol, so the agent is told
+            // here how numbers are written down.
+            let formats = task_patterns()
+                .ok()
+                .filter(|p| p.configured)
+                .map(|p| p.describe());
+            emit(json, &brief, |b| {
+                let mut text = render::brief(b);
+                if let Some(formats) = &formats {
+                    text.push_str("Task numbers here are matched and tagged as:\n");
+                    text.push_str(formats);
+                }
+                text
+            })
         }
         Command::Group(command) => run_group(&mut store, command, json),
     }
@@ -381,6 +429,40 @@ fn open_store(db: Option<PathBuf>) -> CliResult<Store> {
     };
     let options = config::options(env::var(config::ENV_HALF_LIFE_DAYS).ok())?;
     Ok(Store::open_with(&path, options)?)
+}
+
+// Entries for one task number, history included. Tracker keys (proj-123) are
+// unique across projects, so all of memory is searched; GitHub numbers (gh-6)
+// repeat in every repository, so only the project of the working directory.
+fn task_entries(store: &Store, id: &TaskId, cwd: &str) -> Vec<Card> {
+    let (project, scope) = match id.scope {
+        TaskScope::All => (None, Some(Scope::All)),
+        TaskScope::Project => {
+            let from_env = env::var(config::ENV_PROJECT).ok();
+            match project::resolve(None, from_env.as_deref(), Path::new(cwd)) {
+                Ok(project) => (Some(project), None),
+                Err(_) => return Vec::new(),
+            }
+        }
+    };
+    store
+        .search(
+            &SearchQuery {
+                text: id.tag.clone(),
+                project,
+                scope,
+                include_inactive: true,
+                deep_history: true,
+                limit: Some(5),
+            },
+            now_ms(),
+        )
+        .unwrap_or_default()
+}
+
+fn task_patterns() -> CliResult<TaskPatterns> {
+    let path = config::config_path(env::var_os(config::ENV_CONFIG), env::var_os("HOME"))?;
+    Ok(TaskPatterns::load(&path)?)
 }
 
 // Scope `all` does not depend on the project, so without an explicit one it

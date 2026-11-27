@@ -11,6 +11,7 @@ fn run_from_root(db: &Path, home: &Path, args: &[&str]) -> Output {
         .env("MUNIN_DB", db)
         .env_remove("MUNIN_PROJECT")
         .env_remove("MUNIN_HALF_LIFE_DAYS")
+        .env_remove("MUNIN_CONFIG")
         .output()
         .unwrap()
 }

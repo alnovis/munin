@@ -6,6 +6,7 @@ pub mod model;
 pub mod project;
 pub mod protocol;
 pub mod store;
+pub mod tasks;
 pub mod time;
 
 pub use error::{Error, Result};

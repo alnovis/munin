@@ -12,6 +12,7 @@ next to each command.
 - [Groups](#groups)
 - [Command line](#command-line)
 - [Configuration](#configuration)
+- [Tasks](#tasks)
 - [Backups](#backups)
 
 ---
@@ -150,6 +151,68 @@ not found, conflict), 2 on a malformed command line.
 | `MUNIN_DB` | `~/.munin/munin.db` | Database file; created with its directory on first use |
 | `MUNIN_PROJECT` | git root or directory name | Current project |
 | `MUNIN_HALF_LIFE_DAYS` | `30` | Age at which `bugfix` and `note` lose half their weight |
+| `MUNIN_CONFIG` | `~/.munin/config.toml` | Optional config file; today it holds [task number formats](#task-number-formats) |
+
+## Tasks
+
+Work that has a task number is recorded under it, so the next session finds
+its history by the number alone:
+
+- the number in brackets at the start of the summary: `[PROJ-123] ...`;
+- the number and the component as tags: `proj-123`, `billing`;
+- the body in three parts: `Summary:` what was asked, `Root cause:` why it
+  happened (for a bug), `Implementation:` what changed and where.
+
+```bash
+munin add --kind bugfix --summary "[PROJ-123] Session lost after the login redirect" \
+  --tag proj-123 --tag auth/session --body-file notes.md
+munin search PROJ-123 --deep --inactive --scope all     # the whole history
+```
+
+With the `munin hook prompt` hook (see
+[INSTALL.md](INSTALL.md#claude-code)), a prompt that mentions a task number
+brings the entries for that number into the agent's context by itself.
+
+### Task number formats
+
+Built in, without a config file:
+
+- tracker keys as trackers print them -- upper-case letters or digits
+  starting with a letter, a dash, digits (`PROJ-123`, `PROJ2-7`); tagged as
+  the number lower-cased (`proj-123`) and looked up across all projects;
+- GitHub issues, `#6` or `gh-6`; tagged `gh-6` (`#` is not part of a word,
+  so `#6` itself is not searchable) and looked up only in the current
+  project, since every repository has its own `#6`.
+
+Other formats go in `~/.munin/config.toml` (or the file `$MUNIN_CONFIG`
+names). Its `[[task]]` rules replace the built-in ones:
+
+```toml
+# Jira keys: unique across projects
+[[task]]
+pattern = '\b[A-Z][A-Z0-9]{1,9}-[0-9]+\b'
+scope = "all"
+
+# ServiceNow incidents
+[[task]]
+pattern = '\bINC[0-9]{7}\b'
+
+# GitHub issues: every repository has its own numbers
+[[task]]
+pattern = '(?:^|[^\w#])#([0-9]+)\b'
+tag = "gh-$1"
+scope = "project"
+```
+
+- `pattern` is a regular expression ([Rust regex syntax](https://docs.rs/regex/latest/regex/#syntax));
+- `tag` is the tag the number is recorded under; `$1`, `$2` refer to the
+  pattern's groups. Without it, the matched text lower-cased. A tag may use
+  only `a-z`, `0-9`, `-`, `_`, `/`, `@`; matches that do not fit are skipped;
+- `scope` is `all` (default) or `project`.
+
+`munin config` shows the formats in effect and reports a broken file. When
+the file defines formats, `munin brief` lists them at session start, so the
+agent knows how to tag numbers.
 
 ## Backups
 

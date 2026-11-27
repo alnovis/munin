@@ -38,7 +38,8 @@ impl Sandbox {
             .env("HOME", &self.home)
             .env("MUNIN_DB", &self.db)
             .env_remove("MUNIN_PROJECT")
-            .env_remove("MUNIN_HALF_LIFE_DAYS");
+            .env_remove("MUNIN_HALF_LIFE_DAYS")
+            .env_remove("MUNIN_CONFIG");
         cmd
     }
 

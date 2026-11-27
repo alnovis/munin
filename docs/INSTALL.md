@@ -103,16 +103,25 @@ keep unrecorded findings in the summary when the context is compacted:
       { "hooks": [
         { "type": "command", "command": "/full/path/to/munin hook pre-compact 2>/dev/null || true", "timeout": 5 }
       ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [
+        { "type": "command", "command": "/full/path/to/munin hook prompt 2>/dev/null || true", "timeout": 5 }
+      ] }
     ]
   }
 }
 ```
 
 `munin hook stop` asks only after a turn with at least 3 edits, or with an
-edit among 8 or more tool calls, and only if nothing was recorded in that
-turn; it asks once, never in a loop. `munin hook pre-compact` prints
-instructions for the compaction summary: list decisions, causes of bugs and
-measurements not yet in Munin, so the agent still has them after compaction.
+edit among 8 or more tool calls, and only if nothing was recorded since the
+prompt (it asks the database, since the transcript lags behind); it asks
+once, never in a loop. `munin hook pre-compact` prints instructions for the
+compaction summary: list decisions, causes of bugs and measurements not yet
+in Munin, so the agent still has them after compaction. `munin hook prompt`
+finds task numbers in the prompt (see [Tasks](USAGE.md#tasks)) and adds
+their entries, history included, to the context; it adds nothing when the
+prompt has no task number or Munin has nothing on it.
 
 If Claude Code's built-in memory is on, say in `~/.claude/CLAUDE.md` which
 memory holds what; otherwise the agent keeps writing where it is used to.

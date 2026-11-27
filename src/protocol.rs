@@ -25,6 +25,19 @@ AFTER a milestone, a fix, or a decision, call append_memory:
 - group: set it instead of the project when a decision spans several
   services of one group.
 
+TASKS: when the work has a task number (by default a tracker key such as
+PROJ-123, or a GitHub issue written gh-6; other formats, when configured,
+are listed at session start):
+- Search for the number first: search_memory with it, deep_history: true,
+  include_inactive: true, finds everything earlier sessions recorded.
+- Start the summary with the number in brackets: [PROJ-123] ...
+- Add the number as a tag (proj-123), and the component as another tag
+  (billing, auth/session).
+- Write the body in three parts:
+    Summary: what was asked
+    Root cause: why it happened (for a bug)
+    Implementation: what changed and where (files, functions, commits)
+
 WHEN an entry turns out outdated, append the replacement with
 supersedes: <old id>. When an entry is simply wrong, call retract_memory with
 the reason. Entries are never edited or deleted.
@@ -50,5 +63,11 @@ mod tests {
             assert!(TEXT.contains(tool), "{tool}");
         }
         assert!(TEXT.is_ascii());
+    }
+
+    // Claude Code cuts server instructions at 4096 characters by default.
+    #[test]
+    fn fits_the_instructions_cap() {
+        assert!(TEXT.len() <= 4096, "{} characters", TEXT.len());
     }
 }

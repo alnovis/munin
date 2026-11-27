@@ -15,10 +15,23 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
   findings not yet in Munin
 - docs/INSTALL.md: load Munin's tools at session start with `alwaysLoad`,
   since deferred MCP tools were rarely used
+- Tasks: work with a task number (`PROJ-123`, `gh-6`) is recorded under it --
+  number in the summary and as a tag, body as Summary / Root cause /
+  Implementation -- in the protocol, the CLI skill and docs/USAGE.md
+- `munin hook prompt` for a UserPromptSubmit hook: a prompt that mentions a
+  task number gets that task's entries, history included, as context;
+  tracker keys are looked up in all projects, GitHub numbers in the current one
+- Config file `~/.munin/config.toml` (or `$MUNIN_CONFIG`), optional: task
+  number formats as `[[task]]` rules (regex `pattern`, `tag` template, `scope`
+  all or project), replacing the built-in tracker-key and GitHub formats;
+  `munin config` shows the formats in effect, and `munin brief` lists
+  configured ones for the agent
 
 ### Changed
 - `munin brief` also says that findings are recorded with `append_memory`,
   including when the project has no entries yet
+- The agent protocol grew a TASKS section; it is still under Claude Code's
+  4096-character cap for server instructions, which a test now checks
 
 ### Fixed
 - `list`, `search` and `tags` with `--scope all` (and the MCP tools

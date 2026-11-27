@@ -150,6 +150,8 @@ munin tags [--scope ...] [--group G] [--project P] [--limit N]
 munin list [--scope ...] [--group G] [--project P] [--kind K] [--inactive] [--limit N]   # newest first, no query
 munin brief [--project P]         # counts, tags, newest decisions; for a SessionStart hook
 munin protocol                    # print the agent protocol (section 6.1)
+munin config                      # task number formats in effect; reports a broken config
+munin hook stop|pre-compact|prompt   # Claude Code hooks, input on stdin
 munin group add <group> <project>...     # create the group if needed, add members
 munin group remove <group> <project>...
 munin group delete <group>               # refused while the group owns entries
@@ -195,8 +197,14 @@ the tools of the installed version.
   `busy_timeout=5000`.
 - Schema version kept in `PRAGMA user_version`; migrations are forward-only
   and run on open.
-- Configuration (half-life, limits) from environment variables; no config
-  file in v1.
+- Configuration from environment variables (database, project, half-life),
+  plus one optional file, `$MUNIN_CONFIG` or `~/.munin/config.toml`, for
+  task number formats: `[[task]]` rules with a regex `pattern`, an optional
+  `tag` template (`gh-$1`; default: the match lower-cased) and a `scope`
+  (`all` or `project`). Without the file, or without `[[task]]` rules, the
+  built-in formats apply: tracker keys (`PROJ-123`, all projects) and GitHub
+  issues (`#6`, `gh-6` -> tag `gh-6`, current project). An invalid file is an
+  error for `munin config` and silence for hooks.
 
 ## 8. Implementation
 

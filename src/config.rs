@@ -7,6 +7,22 @@ use crate::store::Options;
 pub const ENV_DB: &str = "MUNIN_DB";
 pub const ENV_PROJECT: &str = "MUNIN_PROJECT";
 pub const ENV_HALF_LIFE_DAYS: &str = "MUNIN_HALF_LIFE_DAYS";
+pub const ENV_CONFIG: &str = "MUNIN_CONFIG";
+
+/// `MUNIN_CONFIG` when set and non-empty, otherwise `~/.munin/config.toml`.
+/// The file is optional; it does not follow `MUNIN_DB`.
+pub fn config_path(env_config: Option<OsString>, home: Option<OsString>) -> Result<PathBuf> {
+    if let Some(path) = env_config.filter(|p| !p.is_empty()) {
+        return Ok(PathBuf::from(path));
+    }
+    let home = home.filter(|h| !h.is_empty()).ok_or_else(|| {
+        Error::invalid(
+            "config",
+            format!("HOME is not set; set {ENV_CONFIG} to a file path"),
+        )
+    })?;
+    Ok(PathBuf::from(home).join(".munin").join("config.toml"))
+}
 
 /// `MUNIN_DB` when set and non-empty, otherwise `~/.munin/munin.db`.
 pub fn db_path(env_db: Option<OsString>, home: Option<OsString>) -> Result<PathBuf> {
@@ -50,6 +66,15 @@ mod tests {
         let path = db_path(Some("".into()), Some("/home/u".into())).unwrap();
         assert_eq!(path, PathBuf::from("/home/u/.munin/munin.db"));
         assert!(db_path(None, None).is_err());
+    }
+
+    #[test]
+    fn config_path_prefers_env() {
+        let env = config_path(Some("/x/c.toml".into()), Some("/home/u".into())).unwrap();
+        assert_eq!(env, PathBuf::from("/x/c.toml"));
+        let home = config_path(None, Some("/home/u".into())).unwrap();
+        assert_eq!(home, PathBuf::from("/home/u/.munin/config.toml"));
+        assert!(config_path(None, None).is_err());
     }
 
     #[test]

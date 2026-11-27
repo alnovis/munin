@@ -33,6 +33,7 @@ impl Session {
             .env("MUNIN_DB", tmp.path().join("munin.db"))
             .env_remove("MUNIN_PROJECT")
             .env_remove("MUNIN_HALF_LIFE_DAYS")
+            .env_remove("MUNIN_CONFIG")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())

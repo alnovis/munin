@@ -183,6 +183,7 @@ fn cli_lists_everything() {
             .env("MUNIN_DB", tmp.path().join("munin.db"))
             .env("MUNIN_PROJECT", "scry")
             .env_remove("MUNIN_HALF_LIFE_DAYS")
+            .env_remove("MUNIN_CONFIG")
             .output()
             .unwrap();
         assert!(

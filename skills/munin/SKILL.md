@@ -40,6 +40,20 @@ EOF
 - `--group <name>` instead of the project, when a decision spans the
   services of one group (`munin group list --project <p>` shows groups).
 
+## Tasks
+
+When the work has a task number (PROJ-123; a GitHub issue as gh-6), look it
+up first, history included, then record under it:
+
+```bash
+munin search PROJ-123 --deep --inactive --scope all
+munin add --kind bugfix --summary "[PROJ-123] <one line>" --tag proj-123 --tag <component> --body-file - <<'EOF'
+Summary: what was asked
+Root cause: why it happened (for a bug)
+Implementation: what changed and where (files, functions, commits)
+EOF
+```
+
 ## When an entry is outdated or wrong
 
 ```bash
