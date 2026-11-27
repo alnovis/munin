@@ -139,6 +139,9 @@ munin list --inactive --limit 20            # include superseded and retracted
 
 # What agents are told
 munin protocol
+
+# Task number formats in effect (from ~/.munin/config.toml or built in)
+munin config
 ```
 
 Exit codes: 0 on success, 1 when Munin rejects the request (invalid input,
@@ -185,7 +188,9 @@ Built in, without a config file:
   project, since every repository has its own `#6`.
 
 Other formats go in `~/.munin/config.toml` (or the file `$MUNIN_CONFIG`
-names). Its `[[task]]` rules replace the built-in ones:
+names). Its `[[task]]` rules **replace** the built-in ones, so a file that
+adds a tracker should also list the formats still wanted, such as the GitHub
+ones below:
 
 ```toml
 # Jira keys: unique across projects
@@ -202,9 +207,16 @@ pattern = '\bINC[0-9]{7}\b'
 pattern = '(?:^|[^\w#])#([0-9]+)\b'
 tag = "gh-$1"
 scope = "project"
+
+[[task]]
+pattern = '\bgh-([0-9]+)\b'
+tag = "gh-$1"
+scope = "project"
 ```
 
 - `pattern` is a regular expression ([Rust regex syntax](https://docs.rs/regex/latest/regex/#syntax));
+  start it with `(?i)` to match a number typed in any case
+  (`(?i)\bPROJ-[0-9]+\b` also catches `proj-123`);
 - `tag` is the tag the number is recorded under; `$1`, `$2` refer to the
   pattern's groups. Without it, the matched text lower-cased. A tag may use
   only `a-z`, `0-9`, `-`, `_`, `/`, `@`; matches that do not fit are skipped;
