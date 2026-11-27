@@ -19,7 +19,7 @@ fn entry(project: &str, kind: Kind, summary: &str) -> NewEntry {
 
 fn query(project: &str) -> ListQuery {
     ListQuery {
-        project: project.to_owned(),
+        project: Some(project.to_owned()),
         scope: None,
         kind: None,
         include_inactive: false,

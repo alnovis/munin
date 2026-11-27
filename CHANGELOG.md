@@ -8,6 +8,12 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+### Fixed
+- `list`, `search` and `tags` with `--scope all` (and the MCP tools
+  `search_memory` and `get_active_tags` with `scope: all`) no longer fail in
+  a directory that names no project, such as `/`: that scope does not depend
+  on the current project, so it is no longer resolved
+
 ## [0.1.1] - 2026-11-27
 
 ### Added

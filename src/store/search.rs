@@ -58,8 +58,9 @@ impl Scope {
 #[derive(Debug, Clone)]
 pub struct SearchQuery {
     pub text: String,
-    /// The current project, already resolved by the caller.
-    pub project: String,
+    /// The current project, already resolved by the caller. May be `None`
+    /// only with `Scope::All`, which does not depend on it.
+    pub project: Option<String>,
     /// `None` picks the default: `Group(None)` when the project belongs to a
     /// group, `Project` otherwise.
     pub scope: Option<Scope>,
@@ -132,8 +133,8 @@ pub const BRIEF_DURABLE: i64 = 5;
 /// Every entry in scope, newest first, without a search query.
 #[derive(Debug, Clone)]
 pub struct ListQuery {
-    /// The current project, already resolved by the caller.
-    pub project: String,
+    /// Same meaning as in `SearchQuery`.
+    pub project: Option<String>,
     /// Same meaning and default as in `SearchQuery`.
     pub scope: Option<Scope>,
     pub kind: Option<Kind>,
@@ -180,8 +181,8 @@ impl Store {
     /// match before the limit is applied.
     pub fn search(&self, query: &SearchQuery, now_ms: i64) -> Result<Vec<Card>> {
         let fts = fts_query(&query.text)?;
-        let project = normalize_name("project", &query.project)?;
-        let (scope, group) = self.resolve_scope(&project, query.scope.as_ref())?;
+        let (scope, project, group) =
+            self.scope_params(query.project.as_deref(), query.scope.as_ref())?;
         let limit = check_limit(query.limit, DEFAULT_LIMIT, MAX_LIMIT)?;
 
         let sql = format!(
@@ -242,13 +243,12 @@ impl Store {
     /// reuse existing tags instead of inventing synonyms.
     pub fn tags(
         &self,
-        project: &str,
+        project: Option<&str>,
         scope: Option<&Scope>,
         limit: Option<usize>,
         now_ms: i64,
     ) -> Result<Vec<TagUse>> {
-        let project = normalize_name("project", project)?;
-        let (scope, group) = self.resolve_scope(&project, scope)?;
+        let (scope, project, group) = self.scope_params(project, scope)?;
         let limit = check_limit(limit, DEFAULT_TAG_LIMIT, MAX_TAG_LIMIT)?;
 
         let sql = format!(
@@ -341,7 +341,7 @@ impl Store {
             .collect::<rusqlite::Result<_>>()?;
 
         let tags = self
-            .tags(&project, None, Some(BRIEF_TAGS), now_ms)?
+            .tags(Some(&project), None, Some(BRIEF_TAGS), now_ms)?
             .into_iter()
             .map(|t| t.tag)
             .collect();
@@ -361,8 +361,8 @@ impl Store {
     }
 
     pub fn list(&self, query: &ListQuery, now_ms: i64) -> Result<Vec<Listed>> {
-        let project = normalize_name("project", &query.project)?;
-        let (scope, group) = self.resolve_scope(&project, query.scope.as_ref())?;
+        let (scope, project, group) =
+            self.scope_params(query.project.as_deref(), query.scope.as_ref())?;
         let limit: i64 = match query.limit {
             None => -1,
             Some(0) => return Err(Error::invalid("limit", "got 0, expected at least 1")),
@@ -416,6 +416,27 @@ impl Store {
                 .collect::<rusqlite::Result<_>>()?;
         }
         Ok(listed)
+    }
+
+    /// Scope code, project and group bound into SCOPE_FILTER. Every scope
+    /// except `All` is relative to a project, so only `All` works without one.
+    fn scope_params(
+        &self,
+        project: Option<&str>,
+        scope: Option<&Scope>,
+    ) -> Result<(i64, Option<String>, Option<String>)> {
+        if let Some(Scope::All) = scope {
+            return Ok((SCOPE_ALL, None, None));
+        }
+        let project = project.ok_or_else(|| {
+            Error::invalid(
+                "project",
+                "needed unless the scope is all; pass it explicitly or run inside a project",
+            )
+        })?;
+        let project = normalize_name("project", project)?;
+        let (code, group) = self.resolve_scope(&project, scope)?;
+        Ok((code, Some(project), group))
     }
 
     fn resolve_scope(&self, project: &str, scope: Option<&Scope>) -> Result<(i64, Option<String>)> {

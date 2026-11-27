@@ -220,11 +220,12 @@ fn run(cli: Cli) -> CliResult<()> {
             deep,
             limit,
         } => {
+            let scope = scope.resolve()?;
             let cards = store.search(
                 &SearchQuery {
                     text: query.join(" "),
-                    project: current_project(project.as_deref())?,
-                    scope: scope.resolve()?,
+                    project: scoped_project(scope.as_ref(), project.as_deref())?,
+                    scope,
                     include_inactive: inactive,
                     deep_history: deep,
                     limit,
@@ -272,12 +273,9 @@ fn run(cli: Cli) -> CliResult<()> {
             project,
             limit,
         } => {
-            let tags = store.tags(
-                &current_project(project.as_deref())?,
-                scope.resolve()?.as_ref(),
-                limit,
-                now_ms(),
-            )?;
+            let scope = scope.resolve()?;
+            let project = scoped_project(scope.as_ref(), project.as_deref())?;
+            let tags = store.tags(project.as_deref(), scope.as_ref(), limit, now_ms())?;
             emit(json, &tags[..], render::tags)
         }
         Command::List {
@@ -287,10 +285,11 @@ fn run(cli: Cli) -> CliResult<()> {
             inactive,
             limit,
         } => {
+            let scope = scope.resolve()?;
             let listed = store.list(
                 &ListQuery {
-                    project: current_project(project.as_deref())?,
-                    scope: scope.resolve()?,
+                    project: scoped_project(scope.as_ref(), project.as_deref())?,
+                    scope,
                     kind,
                     include_inactive: inactive,
                     limit,
@@ -346,6 +345,15 @@ fn open_store(db: Option<PathBuf>) -> CliResult<Store> {
     };
     let options = config::options(env::var(config::ENV_HALF_LIFE_DAYS).ok())?;
     Ok(Store::open_with(&path, options)?)
+}
+
+// Scope `all` does not depend on the project, so without an explicit one it
+// must not fail in a directory that names no project, such as `/`.
+fn scoped_project(scope: Option<&Scope>, explicit: Option<&str>) -> CliResult<Option<String>> {
+    if matches!(scope, Some(Scope::All)) && explicit.is_none() {
+        return Ok(None);
+    }
+    Ok(Some(current_project(explicit)?))
 }
 
 fn current_project(explicit: Option<&str>) -> CliResult<String> {

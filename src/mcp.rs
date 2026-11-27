@@ -154,10 +154,11 @@ impl Server {
         description = "Search memory before unfamiliar work. Returns compact cards; read a full entry with get_entry."
     )]
     async fn search_memory(&self, Parameters(p): Parameters<SearchParams>) -> ToolResult {
+        let scope = Scope::from_parts(p.scope.map(Into::into), p.group).map_err(message)?;
         let query = SearchQuery {
             text: p.query,
-            project: self.project(p.project.as_deref())?,
-            scope: Scope::from_parts(p.scope.map(Into::into), p.group).map_err(message)?,
+            project: self.scoped_project(scope.as_ref(), p.project.as_deref())?,
+            scope,
             include_inactive: p.include_inactive,
             deep_history: p.deep_history,
             limit: p.limit,
@@ -199,11 +200,11 @@ impl Server {
         description = "List tags in use, most recently used first. Call before append_memory and reuse existing tags."
     )]
     async fn get_active_tags(&self, Parameters(p): Parameters<TagsParams>) -> ToolResult {
-        let project = self.project(p.project.as_deref())?;
         let scope = Scope::from_parts(p.scope.map(Into::into), p.group).map_err(message)?;
+        let project = self.scoped_project(scope.as_ref(), p.project.as_deref())?;
         let tags = self
             .store()?
-            .tags(&project, scope.as_ref(), p.limit, now_ms())
+            .tags(project.as_deref(), scope.as_ref(), p.limit, now_ms())
             .map_err(message)?;
         to_json(&tags)
     }
@@ -220,6 +221,19 @@ impl Server {
 impl Server {
     fn project(&self, explicit: Option<&str>) -> Result<String, String> {
         project::resolve(explicit, self.env_project.as_deref(), &self.dir).map_err(message)
+    }
+
+    // Scope `all` does not depend on the project; without an explicit one it
+    // must work wherever the client started the server.
+    fn scoped_project(
+        &self,
+        scope: Option<&Scope>,
+        explicit: Option<&str>,
+    ) -> Result<Option<String>, String> {
+        if matches!(scope, Some(Scope::All)) && explicit.is_none() {
+            return Ok(None);
+        }
+        self.project(explicit).map(Some)
     }
 
     fn store(&self) -> Result<MutexGuard<'_, Store>, String> {

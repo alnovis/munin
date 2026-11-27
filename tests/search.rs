@@ -35,7 +35,7 @@ fn entry(project: &str, summary: &str) -> NewEntry {
 fn query(project: &str, text: &str) -> SearchQuery {
     SearchQuery {
         text: text.to_owned(),
-        project: project.to_owned(),
+        project: Some(project.to_owned()),
         scope: None,
         include_inactive: false,
         deep_history: false,
@@ -391,7 +391,7 @@ fn tags_by_recent_use() {
         0,
     );
 
-    let tags = store.tags("scry", None, None, NOW).unwrap();
+    let tags = store.tags(Some("scry"), None, None, NOW).unwrap();
     let expected = [("sqlite", 1, 2), ("wal", 1, 1), ("old", 0, 2)]
         .map(|(tag, recent, total)| TagUse {
             tag: tag.to_owned(),
@@ -401,11 +401,51 @@ fn tags_by_recent_use() {
         .to_vec();
     assert_eq!(tags, expected);
 
-    assert_eq!(store.tags("scry", None, Some(1), NOW).unwrap().len(), 1);
+    assert_eq!(
+        store.tags(Some("scry"), None, Some(1), NOW).unwrap().len(),
+        1
+    );
     assert!(matches!(
-        store.tags("scry", None, Some(0), NOW),
+        store.tags(Some("scry"), None, Some(0), NOW),
         Err(Error::Invalid { field: "limit", .. })
     ));
+}
+
+// Check that scope all needs no project and every other scope does.
+#[test]
+fn project_is_optional_only_for_scope_all() {
+    let mut store = Store::open_in_memory().unwrap();
+    add(&mut store, "scry", Kind::Note, "socket", 0);
+    add(&mut store, "munin", Kind::Note, "socket", 0);
+
+    let all = SearchQuery {
+        project: None,
+        scope: Some(Scope::All),
+        ..query("ignored", "socket")
+    };
+    assert_eq!(store.search(&all, NOW).unwrap().len(), 2);
+    assert!(store.tags(None, Some(&Scope::All), None, NOW).is_ok());
+
+    for scope in [None, Some(Scope::Project), Some(Scope::Group(None))] {
+        let res = store.search(
+            &SearchQuery {
+                project: None,
+                scope,
+                ..query("ignored", "socket")
+            },
+            NOW,
+        );
+        assert!(
+            matches!(
+                res,
+                Err(Error::Invalid {
+                    field: "project",
+                    ..
+                })
+            ),
+            "{res:?}"
+        );
+    }
 }
 
 #[test]
