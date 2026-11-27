@@ -32,18 +32,24 @@ your machine, and every MCP client on it shares the same memory.
 
 ## How it works
 
-Agents reach Munin through MCP; people use the same binary from the shell.
-Both work on one database file.
+Agents reach Munin through MCP, or through the CLI with a skill; people use
+the same binary from the shell. All of them work on one database file.
 
 ```mermaid
 flowchart LR
     cc["Claude Code"] -->|"MCP, stdio"| serve["munin serve"]
     codex["Codex"] -->|"MCP, stdio"| serve
     cursor["Cursor"] -->|"MCP, stdio"| serve
-    you["You"] -->|"munin search, add, show"| cli["munin CLI"]
+    opencode["OpenCode"] -->|"MCP, stdio"| serve
+    pi["pi"] -->|"MCP, stdio"| serve
+    pi -->|"CLI, skill"| cli["munin CLI"]
+    you["You"] -->|"munin search, add, show"| cli
     serve --> db[("~/.munin/munin.db<br/>SQLite + FTS5")]
     cli --> db
 ```
+
+How to set up each of these agents is in
+[docs/CONNECTING.md](docs/CONNECTING.md).
 
 An entry is never edited. It stays active until a newer entry replaces it or
 someone marks it wrong; either way it remains readable with its history.
@@ -67,16 +73,16 @@ cd munin
 cargo install --locked --path .
 ```
 
-Then connect it to the agent:
+Then connect it to the agent, for example Claude Code:
 
 ```bash
 claude mcp add --scope user munin -- munin serve
 ```
 
 The agent receives its instructions from Munin on connect. To make it use
-Munin without being asked, allow the tools and add the session-start hook
-described in [docs/INSTALL.md](docs/INSTALL.md#claude-code). To see what it
-has recorded:
+Munin without being asked, allow the tools and add the hooks described in
+[docs/CONNECTING.md](docs/CONNECTING.md#claude-code), which also covers
+Codex, Cursor, OpenCode and pi. To see what it has recorded:
 
 ```bash
 munin search <words>
@@ -87,7 +93,8 @@ munin show <id>
 
 | Document | What it covers |
 |----------|----------------|
-| [Install](docs/INSTALL.md) | Release archives, building from source, connecting Claude Code, Codex, Cursor and OpenCode |
+| [Install](docs/INSTALL.md) | Release archives, building from source, upgrading |
+| [Connecting an agent](docs/CONNECTING.md) | Claude Code, Codex, Cursor, OpenCode and pi: connection, permissions, instructions, hooks |
 | [Usage](docs/USAGE.md) | Entries and kinds, search, superseding, groups, command line, configuration, backups |
 | [Specification](docs/SPEC.md) | Data model, ranking, tools and the decisions behind them |
 | [Development](docs/DEVELOPMENT.md) | Checks, branches, CI |

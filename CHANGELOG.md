@@ -8,6 +8,12 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+### Added
+- docs/CONNECTING.md: setting up Claude Code, Codex, Cursor, OpenCode and pi
+  -- connection, permissions, where Munin's instructions go, which hooks
+  work -- moved out of docs/INSTALL.md and extended to the agents that had
+  only a config snippet; pi now through its built-in MCP or the CLI skill
+
 ## [0.2.3] - 2026-11-27
 
 ### Fixed

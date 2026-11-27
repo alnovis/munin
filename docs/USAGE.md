@@ -137,7 +137,7 @@ The current project has to be a member of the group.
 ## Command line
 
 The current project is resolved as described in
-[INSTALL.md](INSTALL.md#which-project-an-entry-lands-in); `--project`
+[CONNECTING.md](CONNECTING.md#which-project-an-entry-lands-in); `--project`
 overrides it for one command. Every command takes `--json` for JSON output
 and `--db PATH` for another database file.
 
@@ -204,7 +204,7 @@ munin search PROJ-123 --deep --inactive --scope all     # the whole history
 ```
 
 With the `munin hook prompt` hook (see
-[INSTALL.md](INSTALL.md#claude-code)), a prompt that mentions a task number
+[CONNECTING.md](CONNECTING.md#claude-code)), a prompt that mentions a task number
 brings the entries for that number into the agent's context by itself.
 
 ### Task number formats
