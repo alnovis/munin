@@ -196,7 +196,9 @@ the tools of the installed version.
 - SQLite pragmas: `journal_mode=WAL`, `foreign_keys=ON`,
   `busy_timeout=5000`.
 - Schema version kept in `PRAGMA user_version`; migrations are forward-only
-  and run on open.
+  and run on open. The MCP server checks the version again before every
+  tool call and refuses the call once another process has migrated the
+  database past what it knows.
 - Configuration from environment variables (database, project, half-life),
   plus one optional file, `$MUNIN_CONFIG` or `~/.munin/config.toml`, for
   task number formats: `[[task]]` rules with a regex `pattern`, an optional

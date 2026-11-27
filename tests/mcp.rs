@@ -280,6 +280,25 @@ fn errors_tell_the_agent_what_to_fix() {
     s.finish();
 }
 
+// Check that a server whose database a newer munin migrated meanwhile stops
+// serving and tells the agent to reconnect it.
+#[test]
+fn newer_schema_on_a_running_server() {
+    let mut s = Session::start();
+    s.ok("search_memory", json!({ "query": "x" }));
+
+    rusqlite::Connection::open(s._tmp.path().join("munin.db"))
+        .unwrap()
+        .pragma_update(None, "user_version", 99)
+        .unwrap();
+
+    let err = s.err("search_memory", json!({ "query": "x" }));
+    assert!(err.contains("schema 99"), "{err}");
+    assert!(err.contains("Reconnect the munin MCP server"), "{err}");
+
+    s.finish();
+}
+
 #[test]
 fn project_override_and_groups() {
     let mut s = Session::start();

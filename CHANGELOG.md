@@ -8,6 +8,12 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+### Fixed
+- A running MCP server whose database a newer munin has migrated since it
+  started refuses every tool call with a message to reconnect the server in
+  the agent (for example `/mcp` in Claude Code) or restart the session; it used to keep serving
+  and fail on entries of a kind it did not know
+
 ## [0.2.2] - 2026-11-27
 
 ### Fixed

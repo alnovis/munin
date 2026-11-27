@@ -24,6 +24,13 @@ pub enum Error {
     #[error("database schema {found} is newer than this build of munin (knows up to {known})")]
     NewerSchema { found: i64, known: i64 },
 
+    #[error(
+        "the database was upgraded to schema {found} by a newer munin while this server was \
+         running (it knows schema {known}). Reconnect the munin MCP server in your agent \
+         (for example /mcp in Claude Code) or restart the session."
+    )]
+    SchemaChanged { found: i64, known: i64 },
+
     #[error("migration to schema {version} failed: {detail}")]
     Migration { version: i64, detail: String },
 

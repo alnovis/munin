@@ -239,9 +239,12 @@ impl Server {
     }
 
     fn store(&self) -> Result<MutexGuard<'_, Store>, String> {
-        self.store
+        let store = self
+            .store
             .lock()
-            .map_err(|_| "memory store is unavailable after an earlier failure".to_owned())
+            .map_err(|_| "memory store is unavailable after an earlier failure".to_owned())?;
+        store.check_schema().map_err(message)?;
+        Ok(store)
     }
 }
 

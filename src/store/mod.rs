@@ -83,6 +83,17 @@ impl Store {
             .pragma_query_value(None, "user_version", |row| row.get(0))?)
     }
 
+    /// Fails when another process has migrated the database past what this
+    /// build knows since it was opened.
+    pub fn check_schema(&self) -> Result<()> {
+        let known = schema::MIGRATIONS.len() as i64;
+        let found = self.schema_version()?;
+        if found > known {
+            return Err(Error::SchemaChanged { found, known });
+        }
+        Ok(())
+    }
+
     /// Whether any entry was written or retracted at or after `since_ms`.
     pub fn activity_since(&self, since_ms: i64) -> Result<bool> {
         Ok(self.conn.query_row(

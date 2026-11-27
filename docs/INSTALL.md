@@ -200,3 +200,9 @@ on first open, after which older releases refuse the file; such releases
 say so under `Migration` in the changelog. Before installing one, back up the
 database as described in [USAGE.md](USAGE.md#backups) if you may want to go
 back.
+
+MCP servers that are already running keep the old binary until their client
+restarts them. In Claude Code, reconnect munin with `/mcp`, or restart the
+session. A server that finds the database migrated by a newer release
+refuses every tool call and says so, instead of failing on entries it
+cannot read.
