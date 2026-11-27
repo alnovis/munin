@@ -57,8 +57,8 @@ of the memory you use for real work.
 node scripts/cover.mjs
 ```
 
-Draws the cover from the wordmark and `docs/images/raven.svg` in two
-variants: `cover` (ink on parchment, for the light GitHub theme) and
+Draws the cover from `docs/images/logo.svg` (the lettering and the raven;
+`docs/images/emblem.svg` is the raven alone) in two variants: `cover` (ink on parchment, for the light GitHub theme) and
 `cover-dark` (parchment on ink, for the dark one). Each is written as
 `docs/images/<name>.svg` and rendered to `<name>.png` at 2560x1280 with
 headless Chrome (`CHROME` overrides the path). The README picks one with a
