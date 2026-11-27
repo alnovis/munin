@@ -8,6 +8,8 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-27
+
 ### Fixed
 - `--project all` (and `project: "all"` in MCP tools) is refused with a
   pointer to `--scope all`; it used to search a project named `all` and
