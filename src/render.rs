@@ -47,6 +47,10 @@ pub fn brief(brief: &Brief) -> String {
     let total = brief.active.total();
     if total == 0 {
         let _ = writeln!(out, "Munin has no entries for {scope} yet.");
+        out.push_str(
+            "Memory for this project starts with this session: decisions, causes of bugs and \
+             measurements recorded with append_memory are what later sessions will find.\n",
+        );
         return out;
     }
     let a = &brief.active;
@@ -66,6 +70,10 @@ pub fn brief(brief: &Brief) -> String {
     }
     out.push_str(
         "search_memory finds entries by words, symbols or file paths; get_entry reads one in full.\n",
+    );
+    out.push_str(
+        "New decisions, causes of bugs and measurements go in with append_memory; an outdated \
+         entry is replaced with supersedes.\n",
     );
     out
 }

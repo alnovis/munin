@@ -8,6 +8,18 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+### Added
+- `munin hook stop` and `munin hook pre-compact` for Claude Code hooks: after
+  a turn that edited files and recorded nothing, the agent is asked once to
+  record what it found; before compaction, the summary keeps a list of
+  findings not yet in Munin
+- docs/INSTALL.md: load Munin's tools at session start with `alwaysLoad`,
+  since deferred MCP tools were rarely used
+
+### Changed
+- `munin brief` also says that findings are recorded with `append_memory`,
+  including when the project has no entries yet
+
 ### Fixed
 - `list`, `search` and `tags` with `--scope all` (and the MCP tools
   `search_memory` and `get_active_tags` with `scope: all`) no longer fail in

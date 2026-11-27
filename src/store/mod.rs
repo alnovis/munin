@@ -83,6 +83,16 @@ impl Store {
             .pragma_query_value(None, "user_version", |row| row.get(0))?)
     }
 
+    /// Whether any entry was written or retracted at or after `since_ms`.
+    pub fn activity_since(&self, since_ms: i64) -> Result<bool> {
+        Ok(self.conn.query_row(
+            "SELECT EXISTS (SELECT 1 FROM entries WHERE created_at >= ?1)
+                 OR EXISTS (SELECT 1 FROM events WHERE at >= ?1)",
+            [since_ms],
+            |row| row.get(0),
+        )?)
+    }
+
     /// Validates and records a new entry, and marks the entry it supersedes,
     /// if any. Returns the new entry's id.
     pub fn append(&mut self, new: &NewEntry, now_ms: i64) -> Result<i64> {

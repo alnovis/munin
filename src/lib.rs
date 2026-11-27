@@ -1,5 +1,6 @@
 pub mod config;
 pub mod error;
+pub mod hook;
 pub mod mcp;
 pub mod model;
 pub mod project;

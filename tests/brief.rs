@@ -121,10 +121,12 @@ fn cli_text() {
         String::from_utf8(out.stdout).unwrap()
     };
 
-    assert_eq!(
-        run(&["brief"]),
-        "Munin has no entries for project scry yet.\n"
+    let empty = run(&["brief"]);
+    assert!(
+        empty.starts_with("Munin has no entries for project scry yet.\n"),
+        "{empty}"
     );
+    assert!(empty.contains("append_memory"), "{empty}");
 
     run(&[
         "add",

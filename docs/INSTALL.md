@@ -71,9 +71,19 @@ claude mcp add --scope user munin -- munin serve
 `--scope user` makes Munin available in every project. Use the full path to
 the binary if `munin` is not on the `PATH` Claude Code sees.
 
-Three settings make the agent actually use it. In `~/.claude/settings.json`,
-allow the tools without a prompt each time, and tell the agent at session
-start what memory holds for the project:
+Left alone, an agent rarely uses Munin: Claude Code defers MCP tools, so the
+agent sees only their names until it loads them, and nothing prompts it to
+record. Load Munin's tools at session start instead (`alwaysLoad`):
+
+```bash
+claude mcp add-json munin --scope user \
+  '{"type":"stdio","command":"/full/path/to/munin","args":["serve"],"alwaysLoad":true}'
+```
+
+Then, in `~/.claude/settings.json`, allow the tools without a prompt each
+time, tell the agent at session start what memory holds for the project, ask
+it once to record after a turn that edited files and recorded nothing, and
+keep unrecorded findings in the summary when the context is compacted:
 
 ```json
 {
@@ -83,10 +93,26 @@ start what memory holds for the project:
       { "hooks": [
         { "type": "command", "command": "/full/path/to/munin brief 2>/dev/null || true", "timeout": 5 }
       ] }
+    ],
+    "Stop": [
+      { "hooks": [
+        { "type": "command", "command": "/full/path/to/munin hook stop 2>/dev/null || true", "timeout": 5 }
+      ] }
+    ],
+    "PreCompact": [
+      { "hooks": [
+        { "type": "command", "command": "/full/path/to/munin hook pre-compact 2>/dev/null || true", "timeout": 5 }
+      ] }
     ]
   }
 }
 ```
+
+`munin hook stop` asks only after a turn with at least 3 edits, or with an
+edit among 8 or more tool calls, and only if nothing was recorded in that
+turn; it asks once, never in a loop. `munin hook pre-compact` prints
+instructions for the compaction summary: list decisions, causes of bugs and
+measurements not yet in Munin, so the agent still has them after compaction.
 
 If Claude Code's built-in memory is on, say in `~/.claude/CLAUDE.md` which
 memory holds what; otherwise the agent keeps writing where it is used to.

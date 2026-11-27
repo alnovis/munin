@@ -11,7 +11,8 @@ use serde::Serialize;
 
 use munin::time::now_ms;
 use munin::{
-    Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, mcp, project, protocol,
+    Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, config, hook, mcp, project,
+    protocol,
 };
 
 type CliResult<T> = std::result::Result<T, Box<dyn StdError>>;
@@ -127,6 +128,18 @@ enum Command {
     /// Manage groups of projects worked on together
     #[command(subcommand)]
     Group(GroupCommand),
+    /// Claude Code hooks that remind the agent to record what it learned
+    #[command(subcommand)]
+    Hook(HookCommand),
+}
+
+#[derive(Subcommand)]
+enum HookCommand {
+    /// Stop hook: reads the hook input on stdin; after a turn that edited
+    /// files and recorded nothing, asks the agent once to record
+    Stop,
+    /// PreCompact hook: prints instructions for the compaction summary
+    PreCompact,
 }
 
 #[derive(Subcommand)]
@@ -193,14 +206,37 @@ fn main() -> ExitCode {
 
 fn run(cli: Cli) -> CliResult<()> {
     let json = cli.json;
-    if let Command::Protocol = cli.command {
-        print!("{}", protocol::TEXT);
-        return Ok(());
+    match cli.command {
+        Command::Protocol => {
+            print!("{}", protocol::TEXT);
+            return Ok(());
+        }
+        // Hooks never fail the session: errors mean "say nothing".
+        Command::Hook(HookCommand::Stop) => {
+            let mut input = String::new();
+            let db = cli.db.clone();
+            let recorded_since = |since| {
+                open_store(db)
+                    .ok()
+                    .and_then(|s| s.activity_since(since).ok())
+            };
+            if std::io::stdin().read_to_string(&mut input).is_ok()
+                && let Some(output) = hook::stop(&input, recorded_since)
+            {
+                println!("{output}");
+            }
+            return Ok(());
+        }
+        Command::Hook(HookCommand::PreCompact) => {
+            println!("{}", hook::PRE_COMPACT);
+            return Ok(());
+        }
+        _ => {}
     }
     let mut store = open_store(cli.db)?;
 
     match cli.command {
-        Command::Protocol => unreachable!("handled above"),
+        Command::Protocol | Command::Hook(_) => unreachable!("handled above"),
         Command::Serve => {
             let server = mcp::Server::new(
                 store,
