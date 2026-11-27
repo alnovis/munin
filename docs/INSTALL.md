@@ -186,6 +186,9 @@ Every call resolves the current project, first match wins:
 3. the directory the client started the server in: the name of its git root,
    or of the directory itself outside git.
 
+`all` is not a project name: entries of every project are reached with
+`--scope all` (`scope: "all"`), and `--project all` is refused.
+
 If a client starts servers somewhere other than the project directory, every
 entry lands in one project. Set `MUNIN_PROJECT` in that client's server
 configuration, or ask the agent to pass `project`.

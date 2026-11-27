@@ -55,7 +55,7 @@ Entry:
 | Field | Type | Notes |
 |---|---|---|
 | `id` | integer | Assigned on insert, never reused |
-| `project` | text, nullable | Normalized like a tag |
+| `project` | text, nullable | Normalized like a tag; `all` is reserved for the scope |
 | `group` | text, nullable | Name of an existing group |
 | `kind` | enum | `decision`, `architecture`, `bugfix`, `note`, `howto` |
 | `summary` | text | One line, at most 200 characters |

@@ -263,6 +263,10 @@ fn invalid_input_names_the_problem() {
 
     let (_, err) = sb.fail(&["show", "999"]);
     assert!(err.contains("entry 999 not found"), "{err}");
+
+    let (code, err) = sb.fail(&["list", "--project", "All"]);
+    assert_eq!(code, 1);
+    assert!(err.contains("--scope all"), "{err}");
 }
 
 #[test]

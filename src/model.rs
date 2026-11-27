@@ -200,6 +200,12 @@ pub fn normalize_name(field: &'static str, raw: &str) -> Result<String> {
             format!("{name:?} contains {bad:?}; allowed: a-z, 0-9, '-', '_', '/', '@'"),
         ));
     }
+    if field == "project" && name == "all" {
+        return Err(Error::invalid(
+            field,
+            "\"all\" is reserved; for entries of every project use scope all (--scope all)",
+        ));
+    }
     Ok(name)
 }
 
