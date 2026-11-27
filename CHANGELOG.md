@@ -8,6 +8,20 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
+### Added
+- Entry kind `howto`: steps to do something again -- commands in order,
+  `<placeholders>` for what changes each time. Like `decision` and
+  `architecture`, it never fades. Accepted by `munin add --kind`,
+  `munin list --kind` and `append_memory`
+
+### Migration
+- Schema 2 rebuilds the `entries` table to allow the new kind; ids, links,
+  tags and events are kept. Once 0.2 opens the database, 0.1 releases refuse
+  it: back up `~/.munin/munin.db` before upgrading if a downgrade may be
+  needed (see docs/USAGE.md#backups)
+
 ## [0.1.2] - 2026-11-27
 
 ### Added
