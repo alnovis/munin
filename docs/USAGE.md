@@ -259,12 +259,20 @@ agent knows how to tag numbers.
 
 ## Backups
 
-The database is a single SQLite file in WAL mode. `sqlite3` copies it safely
-even while an agent is using it:
+The database is a single SQLite file in WAL mode. `VACUUM INTO` copies it
+safely even while an agent is using it, through a read-only connection:
 
 ```bash
-sqlite3 ~/.munin/munin.db ".backup '$HOME/.munin/munin-backup.db'"
+sqlite3 -readonly ~/.munin/munin.db "VACUUM INTO '$HOME/.munin/munin-backup.db'"
 ```
+
+The copy is a plain file, not in WAL mode, so `sqlite3 -readonly` opens it
+too. A copy made with `.backup` keeps the WAL flag, and `-readonly` refuses
+such a file while it has no `-wal` and `-shm` files next to it.
+
+A backup keeps the schema it was made with, so one taken after a migration
+does not open in an older release. Make it before installing a release with
+a `Migration` section in the changelog.
 
 To look inside without any risk of changing it:
 
