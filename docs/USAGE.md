@@ -34,6 +34,36 @@ Every entry belongs to a project, or to a group of projects (see
 [Groups](#groups)). The content of an entry never changes after it is
 written.
 
+### How-tos
+
+A `howto` keeps steps that are repeated now and then and forgotten in
+between: the commands in order, with `<placeholders>` for what changes each
+time, so the next run does not copy last time's version or job id. Name the
+variable that holds a token, never the token itself.
+
+```bash
+munin add --kind howto --tag docker --tag registry --tag mirror \
+  --summary "Push an amd64 image to the registry mirror for CI" \
+  --body-file - <<'EOF'
+Log in (the token is in $CI_TOKEN):
+
+    docker logout <registry>
+    printf '%s' "$CI_TOKEN" | docker login <registry> -u <user> --password-stdin
+
+Push:
+
+1. docker pull --platform linux/amd64 <image>:<tag>
+2. docker tag <image>:<tag> <registry>/<mirror-path>/<image>:<tag>
+3. docker push <registry>/<mirror-path>/<image>:<tag>
+4. docker pull --platform linux/arm64 <image>:<tag>
+   (puts the local tag back on arm64, so local tests keep working)
+5. glab ci retry <job-id> -R <project-url>
+EOF
+```
+
+`munin search registry mirror` finds it later. Search has no stemming, so
+English words in the summary and tags matter more than the body's wording.
+
 ## Search
 
 `munin search` / `search_memory` returns compact cards: id, kind, owner, age,
