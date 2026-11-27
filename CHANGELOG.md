@@ -8,6 +8,11 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+### Changed
+- The agent protocol and the CLI skill say when to use a `howto`: search for
+  one before a routine job done in steps (release, deploy, a migration), and
+  record steps the user had to explain or that took several tries
+
 ## [0.2.0] - 2026-11-27
 
 ### Added

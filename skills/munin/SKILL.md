@@ -1,12 +1,12 @@
 ---
 name: munin
-description: Project memory across sessions through the munin CLI. Use before unfamiliar code, a non-trivial change or an error not seen before (search), and after a decision, a fix or a measurement (record).
+description: Project memory across sessions through the munin CLI. Use before unfamiliar code, a non-trivial change, an error not seen before or a routine job done in steps (search), and after a decision, a fix, a measurement or steps worked out (record).
 ---
 
 # Munin
 
 Munin is memory across sessions: decisions, how the system is built, bugs
-with their cause and fix. It lives in one SQLite file and is shared with
+with their cause and fix, steps of routine jobs. It lives in one SQLite file and is shared with
 other agents on this machine. The current project is the git root of the
 working directory.
 
@@ -22,6 +22,9 @@ Search with key words, symbols or file paths. Read an entry in full only
 when its summary looks relevant. If nothing comes back, retry with `--deep`
 (ignores age). There is no stemming: `upload` does not find `uploads`.
 
+Before a routine job done in steps (release, deploy, pushing an image, a
+migration), search for a `howto` instead of working the steps out again.
+
 ## After the work
 
 ```bash
@@ -36,7 +39,8 @@ EOF
   `note` (anything else), `howto` (steps to do something again: commands in
   order, `<placeholders>` for what changes each time). `decision`,
   `architecture` and `howto` never fade; `bugfix` and `note` fade over about
-  a month.
+  a month. Steps the user had to explain, or that took several tries to get
+  right, go in as a `howto`.
 - `--summary`: one line, at most 200 characters.
 - `--tag`: at most 6.
 - `--group <name>` instead of the project, when a decision spans the

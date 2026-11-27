@@ -125,8 +125,8 @@ prompt has no task number or Munin has nothing on it.
 
 If Claude Code's built-in memory is on, say in `~/.claude/CLAUDE.md` which
 memory holds what; otherwise the agent keeps writing where it is used to.
-For example: project knowledge (decisions, architecture, bugs and fixes) goes
-to Munin; facts about the user and how to work with them stay in built-in
+For example: project knowledge (decisions, architecture, bugs and fixes,
+steps of routine jobs) goes to Munin; facts about the user and how to work with them stay in built-in
 memory.
 
 ### Codex
