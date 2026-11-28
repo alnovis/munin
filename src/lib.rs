@@ -12,6 +12,6 @@ pub mod time;
 pub use error::{Error, Result};
 pub use model::{Entry, Event, EventKind, Group, Kind, NewEntry, Owner, Status};
 pub use store::{
-    Brief, BriefEntry, Card, KindCounts, ListQuery, Listed, Options, Scope, ScopeKind, SearchQuery,
-    Store, TagUse,
+    Brief, BriefEntry, Card, KindCounts, ListQuery, Listed, Options, Overview, Scope, ScopeKind,
+    SearchQuery, Store, TagUse,
 };

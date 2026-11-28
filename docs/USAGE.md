@@ -96,6 +96,12 @@ Scope decides whose entries are searched:
 The default is `group` when the current project belongs to a group, and
 `project` otherwise.
 
+Without a query, `munin list` shows every entry in scope, newest first.
+Agents get the same over MCP as `list_memory`, ordered for a limit instead:
+`decision`, `architecture` and `howto` first, then `bugfix` and `note`, each
+newest first. Its limit is 1 to 200, 50 by default, and `total` tells how
+many entries matched before the limit.
+
 ## Superseding and retracting
 
 Knowledge changes, but Munin never edits an entry:

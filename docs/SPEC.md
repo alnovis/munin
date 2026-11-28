@@ -123,17 +123,27 @@ Card returned per hit: `id`, `project`, `kind`, `summary`, `tags`,
 | Tool | Input | Result |
 |---|---|---|
 | `search_memory` | `query`, `scope?`, `group?`, `project?`, `include_inactive?`, `deep_history?`, `limit?` | Cards |
+| `list_memory` | `scope?`, `group?`, `project?`, `kind?`, `include_inactive?`, `limit?` | `total`, `returned` and the entries in scope, durable kinds first |
 | `list_groups` | `project?` | Groups the project belongs to, with their members |
 | `get_entry` | `id` | Full entry plus `supersedes`, `superseded_by`, `events` |
 | `append_memory` | `kind`, `summary`, `body?`, `tags?`, `supersedes?`, `project?` or `group?` | The new entry's id and card |
 | `retract_memory` | `id`, `reason` | The updated card |
+| `get_active_tags` | `project?`, `scope?`, `group?`, `limit?` | Tags of active entries in scope: uses in the last 60 days, then total uses (default 40, max 200) |
 
 `project` is optional everywhere; when omitted it is resolved as in section 7.
 `append_memory` takes `group` instead of `project` to record a decision that
 spans a group; the current project must belong to that group.
 `retract_memory` needs only a reason: it marks an entry as wrong without
 replacing it. To replace an entry, append a new one with `supersedes`.
-| `get_active_tags` | `project?`, `scope?`, `group?`, `limit?` | Tags of active entries in scope: uses in the last 60 days, then total uses (default 40, max 200) |
+`list_memory` shows what memory holds without a query, for an agent that has
+to load a project before it knows what to search for. Scope and status work
+as in section 4. Entries come in decay order: `decision`, `architecture` and
+`howto` first, then `bugfix` and `note`, each part newest first, so a limit
+cuts fading entries before durable ones. Limit: default 50, maximum 200.
+`total` counts every entry that matches; when it exceeds `returned`, narrow
+with `kind` or `scope`. An entry carries `id`, `project`, `kind`, `summary`,
+`tags`, `age_days`, and, when not `active`, `status` and `superseded_by`.
+`munin list` keeps its own order, newest first, for reading in a terminal.
 
 Errors are returned as MCP tool errors with a message the agent can act on:
 which field is wrong and what is allowed.

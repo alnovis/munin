@@ -9,6 +9,14 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 ## [Unreleased]
 
 ### Added
+- Published on crates.io as `munin-mcp` (the name `munin` was taken):
+  `cargo install --locked munin-mcp` installs the `munin` binary
+- MCP tool `list_memory`: what memory holds for a project without a search
+  query, for an agent that has to load a project before it knows what to
+  search for. Decisions, architecture and how-tos come first, then bug fixes
+  and notes, so a limit (default 50, at most 200) cuts fading entries first;
+  `total` shows how many matched. The agent protocol tells agents to call it
+  when asked what memory holds; the CLI skill points to `munin list`
 - docs/CONNECTING.md: setting up Claude Code, Codex, Cursor, OpenCode and pi
   -- connection, permissions, where Munin's instructions go, which hooks
   work -- moved out of docs/INSTALL.md and extended to the agents that had

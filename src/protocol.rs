@@ -14,6 +14,8 @@ migration):
 - Searches cover the current project and, when it belongs to a group, the
   whole group; list_groups shows which group that is. If nothing comes
   back, retry with deep_history: true.
+- Asked what memory holds, or to load a project before broad work: call
+  list_memory, then search for specifics.
 
 AFTER a milestone, a fix, or a decision, call append_memory:
 - kind: decision      a choice or convention that holds until replaced
@@ -62,6 +64,7 @@ mod tests {
     fn names_every_tool_and_is_ascii() {
         for tool in [
             "search_memory",
+            "list_memory",
             "get_entry",
             "append_memory",
             "retract_memory",

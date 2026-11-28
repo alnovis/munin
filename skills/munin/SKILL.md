@@ -14,6 +14,7 @@ working directory.
 
 ```bash
 munin brief                       # what memory holds for this project
+munin list                        # every entry, newest first; narrow with --kind decision
 munin search <words> --json       # words are OR-ed; "quoted phrase" matches in order
 munin show <id> --json            # one entry in full, with its history
 ```

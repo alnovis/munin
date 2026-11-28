@@ -2,7 +2,8 @@ mod schema;
 mod search;
 
 pub use search::{
-    Brief, BriefEntry, Card, KindCounts, ListQuery, Listed, Scope, ScopeKind, SearchQuery, TagUse,
+    Brief, BriefEntry, Card, KindCounts, ListQuery, Listed, Overview, Scope, ScopeKind,
+    SearchQuery, TagUse,
 };
 
 use std::path::Path;

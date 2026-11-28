@@ -6,6 +6,7 @@ How to get the `munin` binary. Connecting it to an agent is in
 ## Table of Contents
 
 - [From a release](#from-a-release)
+- [From crates.io](#from-cratesio)
 - [From source](#from-source)
 - [Connecting an agent](#connecting-an-agent)
 - [Upgrading](#upgrading)
@@ -36,6 +37,19 @@ Any directory on `PATH` works instead of `~/.local/bin`. The macOS binary is
 not notarized: downloaded with `curl` it runs as is, while a browser download
 is quarantined by Gatekeeper and needs `xattr -d com.apple.quarantine munin`
 once.
+
+## From crates.io
+
+The crate is `munin-mcp`, because `munin` was taken; the binary it installs
+is still `munin`. Needs the same toolchain as [building from source](#from-source).
+
+```bash
+cargo install --locked munin-mcp      # installs to ~/.cargo/bin/munin
+```
+
+Other crates install a `munin` binary too (`munin`, `munin-memory`). Cargo
+refuses to overwrite one that came from another package; remove that package
+first with `cargo uninstall <name>`.
 
 ## From source
 

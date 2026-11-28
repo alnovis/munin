@@ -193,6 +193,7 @@ fn lists_all_tools() {
             "get_active_tags",
             "get_entry",
             "list_groups",
+            "list_memory",
             "retract_memory",
             "search_memory"
         ]
@@ -254,6 +255,39 @@ fn record_search_supersede_retract() {
         json!({ "query": "uploads", "include_inactive": true }),
     );
     assert_eq!(cards.as_array().unwrap().len(), 2);
+
+    s.finish();
+}
+
+// Check that an older decision is listed before a newer note, and that the
+// total shows what a limit left out.
+#[test]
+fn list_memory_without_a_query() {
+    let mut s = Session::start();
+    let decision = s.ok(
+        "append_memory",
+        json!({ "kind": "decision", "summary": "Use SQLite" }),
+    )["id"]
+        .clone();
+    let note = s.ok(
+        "append_memory",
+        json!({ "kind": "note", "summary": "Slow CI" }),
+    )["id"]
+        .clone();
+
+    let listed = s.ok("list_memory", json!({}));
+    assert_eq!(listed["total"], 2);
+    assert_eq!(listed["returned"], 2);
+    assert_eq!(listed["entries"][0]["id"], decision);
+    assert_eq!(listed["entries"][1]["id"], note);
+    assert_eq!(listed["entries"][0]["owner"]["project"], "scry-repo");
+
+    let listed = s.ok("list_memory", json!({ "limit": 1 }));
+    assert_eq!(listed["total"], 2);
+    assert_eq!(listed["returned"], 1);
+
+    let err = s.err("list_memory", json!({ "limit": 500 }));
+    assert!(err.contains("expected 1 to 200"), "{err}");
 
     s.finish();
 }

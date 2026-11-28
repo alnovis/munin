@@ -10,6 +10,8 @@ pub const DEFAULT_LIMIT: usize = 5;
 pub const MAX_LIMIT: usize = 15;
 pub const DEFAULT_TAG_LIMIT: usize = 40;
 pub const MAX_TAG_LIMIT: usize = 200;
+pub const DEFAULT_OVERVIEW_LIMIT: usize = 50;
+pub const MAX_OVERVIEW_LIMIT: usize = 200;
 /// Tags used within this window rank above tags that were only used before it.
 pub const RECENT_TAG_DAYS: i64 = 60;
 
@@ -142,6 +144,14 @@ pub struct ListQuery {
     pub include_inactive: bool,
     /// `None` lists everything.
     pub limit: Option<usize>,
+}
+
+/// Entries in scope, durable kinds first, and how many matched in all.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Overview {
+    pub total: i64,
+    pub returned: usize,
+    pub entries: Vec<Listed>,
 }
 
 /// One listed entry: a search card without a score.
@@ -363,24 +373,56 @@ impl Store {
     }
 
     pub fn list(&self, query: &ListQuery, now_ms: i64) -> Result<Vec<Listed>> {
-        let (scope, project, group) =
-            self.scope_params(query.project.as_deref(), query.scope.as_ref())?;
         let limit: i64 = match query.limit {
             None => -1,
             Some(0) => return Err(Error::invalid("limit", "got 0, expected at least 1")),
             Some(n) => i64::try_from(n).unwrap_or(i64::MAX),
         };
+        let (listed, _) = self.listed(query, "e.created_at DESC, e.id DESC", limit, now_ms)?;
+        Ok(listed)
+    }
+
+    /// Like `list`, but durable kinds come first, so a limit cuts fading
+    /// entries before them, and the number of all matches is reported.
+    pub fn overview(&self, query: &ListQuery, now_ms: i64) -> Result<Overview> {
+        let limit = check_limit(query.limit, DEFAULT_OVERVIEW_LIMIT, MAX_OVERVIEW_LIMIT)?;
+        let (entries, total) = self.listed(
+            query,
+            "munin_decays(e.kind), e.created_at DESC, e.id DESC",
+            i64::try_from(limit).unwrap_or(i64::MAX),
+            now_ms,
+        )?;
+        Ok(Overview {
+            total,
+            returned: entries.len(),
+            entries,
+        })
+    }
+
+    /// Entries in `order` up to `limit` (-1 for all), with the number of all
+    /// matches before the limit.
+    fn listed(
+        &self,
+        query: &ListQuery,
+        order: &str,
+        limit: i64,
+        now_ms: i64,
+    ) -> Result<(Vec<Listed>, i64)> {
+        let (scope, project, group) =
+            self.scope_params(query.project.as_deref(), query.scope.as_ref())?;
 
         let sql = format!(
             "SELECT e.id, e.project, e.group_name, e.kind, e.summary, e.created_at, e.status,
-                    (SELECT s.id FROM entries s WHERE s.supersedes = e.id)
+                    (SELECT s.id FROM entries s WHERE s.supersedes = e.id),
+                    COUNT(*) OVER ()
              FROM entries e
              WHERE (:inactive OR e.status = 'active')
                AND (:kind IS NULL OR e.kind = :kind)
                AND ({SCOPE_FILTER})
-             ORDER BY e.created_at DESC, e.id DESC
+             ORDER BY {order}
              LIMIT :limit"
         );
+        let mut total = 0;
         let mut listed = self
             .conn
             .prepare(&sql)?
@@ -395,6 +437,7 @@ impl Store {
                 },
                 |row| {
                     let created_at: i64 = row.get(5)?;
+                    total = row.get(8)?;
                     Ok(Listed {
                         id: row.get(0)?,
                         owner: owner_from_columns(row.get(1)?, row.get(2)?),
@@ -417,7 +460,7 @@ impl Store {
                 .query_map([item.id], |row| row.get(0))?
                 .collect::<rusqlite::Result<_>>()?;
         }
-        Ok(listed)
+        Ok((listed, total))
     }
 
     /// Scope code, project and group bound into SCOPE_FILTER. Every scope
@@ -476,6 +519,12 @@ pub(super) fn register_functions(conn: &Connection, options: Options) -> Result<
             let deep_history: bool = ctx.get(2)?;
             Ok(decay(kind, age_ms, half_life_days, deep_history))
         },
+    )?;
+    conn.create_scalar_function(
+        "munin_decays",
+        1,
+        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| Ok(ctx.get::<Kind>(0)?.decays()),
     )?;
     Ok(())
 }

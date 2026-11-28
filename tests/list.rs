@@ -173,6 +173,68 @@ fn listed_fields_and_limit() {
 }
 
 #[test]
+fn overview_puts_durable_kinds_first_and_counts_all() {
+    let d = data();
+    let overview = |q: ListQuery| -> (Vec<i64>, i64, usize) {
+        let o = d.store.overview(&q, NOW).unwrap();
+        (
+            o.entries.iter().map(|e| e.id).collect(),
+            o.total,
+            o.returned,
+        )
+    };
+
+    assert_eq!(overview(query("scry")), (vec![d.new, d.arch, d.bug], 3, 3));
+    assert_eq!(
+        overview(ListQuery {
+            include_inactive: true,
+            ..query("scry")
+        }),
+        (vec![d.new, d.arch, d.old, d.wrong, d.bug], 5, 5)
+    );
+    assert_eq!(
+        overview(ListQuery {
+            limit: Some(1),
+            ..query("scry")
+        }),
+        (vec![d.new], 3, 1)
+    );
+    assert_eq!(
+        overview(ListQuery {
+            kind: Some(Kind::Bugfix),
+            ..query("scry")
+        }),
+        (vec![d.bug], 1, 1)
+    );
+    assert_eq!(overview(query("nobody")), (vec![], 0, 0));
+
+    for limit in [0, 201] {
+        assert!(matches!(
+            d.store.overview(
+                &ListQuery {
+                    limit: Some(limit),
+                    ..query("scry")
+                },
+                NOW
+            ),
+            Err(Error::Invalid { field: "limit", .. })
+        ));
+    }
+}
+
+#[test]
+fn overview_limit_defaults_to_50() {
+    let mut store = Store::open_in_memory().unwrap();
+    for i in 0..60 {
+        store
+            .append(&entry("scry", Kind::Note, &format!("note {i}")), NOW)
+            .unwrap();
+    }
+    let o = store.overview(&query("scry"), NOW).unwrap();
+    assert_eq!((o.total, o.returned, o.entries.len()), (60, 50, 50));
+}
+
+#[test]
 fn cli_lists_everything() {
     let tmp = tempfile::tempdir().unwrap();
     let run = |args: &[&str]| {

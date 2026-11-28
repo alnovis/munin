@@ -11,7 +11,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::time::now_ms;
-use crate::{Kind, NewEntry, Scope, ScopeKind, SearchQuery, Store, project, protocol};
+use crate::{Kind, ListQuery, NewEntry, Scope, ScopeKind, SearchQuery, Store, project, protocol};
 
 type ToolResult = Result<String, String>;
 
@@ -83,6 +83,23 @@ pub struct SearchParams {
     #[serde(default)]
     pub deep_history: bool,
     /// Number of cards, 1 to 15; default 5.
+    pub limit: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ListParams {
+    /// Same meaning as in search_memory.
+    pub scope: Option<ScopeParam>,
+    /// Same meaning as in search_memory.
+    pub group: Option<String>,
+    /// Override the current project.
+    pub project: Option<String>,
+    /// Only entries of this kind.
+    pub kind: Option<KindParam>,
+    /// Also return superseded and retracted entries.
+    #[serde(default)]
+    pub include_inactive: bool,
+    /// Number of entries, 1 to 200; default 50.
     pub limit: Option<usize>,
 }
 
@@ -166,6 +183,21 @@ impl Server {
             limit: p.limit,
         };
         to_json(&self.store()?.search(&query, now_ms()).map_err(message)?)
+    }
+
+    #[tool(
+        description = "List what memory holds, without a query: decisions, architecture and how-tos first, then bug fixes and notes, newest first. When total exceeds returned, narrow with kind or scope."
+    )]
+    async fn list_memory(&self, Parameters(p): Parameters<ListParams>) -> ToolResult {
+        let scope = Scope::from_parts(p.scope.map(Into::into), p.group).map_err(message)?;
+        let query = ListQuery {
+            project: self.scoped_project(scope.as_ref(), p.project.as_deref())?,
+            scope,
+            kind: p.kind.map(Into::into),
+            include_inactive: p.include_inactive,
+            limit: p.limit,
+        };
+        to_json(&self.store()?.overview(&query, now_ms()).map_err(message)?)
     }
 
     #[tool(description = "Read one entry in full, with its supersede chain and events.")]

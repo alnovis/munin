@@ -65,12 +65,11 @@ stateDiagram-v2
 
 Take the archive for your platform (Apple Silicon or x86_64 Linux) from
 [Releases](https://github.com/alnovis/munin/releases) and put `munin` on your
-`PATH` ([details](docs/INSTALL.md#from-a-release)), or build from source:
+`PATH` ([details](docs/INSTALL.md#from-a-release)), or install it with Cargo
+(the crate is `munin-mcp`, the binary `munin`):
 
 ```bash
-git clone https://github.com/alnovis/munin.git
-cd munin
-cargo install --locked --path .
+cargo install --locked munin-mcp
 ```
 
 Then connect it to the agent, for example Claude Code:
