@@ -87,5 +87,15 @@ session. A server that finds the database migrated by a newer release
 refuses every tool call and says so, instead of failing on entries it
 cannot read.
 
+Up to 0.2.3 the package was called `munin`; from 0.2.5 it is `munin-mcp`.
+Upgrading an older `cargo install` stops with "binary `munin` already exists
+in destination as part of `munin v0.2.3`". Remove the old package once, then
+install as usual:
+
+```bash
+cargo uninstall munin        # add --root <dir> if you installed with --root
+cargo install --locked munin-mcp
+```
+
 If you put the output of `munin protocol` into an instructions file
 ([Other clients](CONNECTING.md#other-clients)), re-run it after upgrading.

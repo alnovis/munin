@@ -1,6 +1,6 @@
 [package]
 name = "munin-mcp"
-version = "0.2.3"
+version = "0.2.5"
 edition = "2024"
 authors = ["Alexander Novikov <dev@alnovis.io>"]
 description = "Local memory for AI coding agents: an MCP server and a CLI over one SQLite file"

@@ -8,6 +8,8 @@ with the rules for what counts as breaking in [docs/RELEASING.md](docs/RELEASING
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-11-28
+
 ### Added
 - Published on crates.io as `munin-mcp` (the name `munin` was taken):
   `cargo install --locked munin-mcp` installs the `munin` binary
