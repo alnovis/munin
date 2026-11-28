@@ -103,7 +103,7 @@ that project (section 4). A group that still owns entries cannot be deleted.
   Default: `group` when the current project belongs to at least one group,
   `project` otherwise.
 
-  Cards always carry `project`, so hits from different services stay
+  Cards always carry their owner, so hits from different services stay
   distinguishable. Ranking does not favour the current project in wider
   scopes.
 - Status: only `active` entries by default; `include_inactive: true` returns
@@ -115,8 +115,9 @@ that project (section 4). A group that still owns entries cannot be deleted.
 - Ranking is computed over all matches before the limit is applied.
 - Limit: default 5, maximum 15.
 
-Card returned per hit: `id`, `project`, `kind`, `summary`, `tags`,
-`age_days`, `score`, and, when not `active`, `status` and `superseded_by`.
+Card returned per hit: `id`, `owner` (`{"project": ...}` or
+`{"group": ...}`), `kind`, `summary`, `tags`, `age_days`, `score`, `status`
+and `superseded_by` (`null` unless superseded).
 
 ## 5. MCP tools
 
@@ -126,8 +127,8 @@ Card returned per hit: `id`, `project`, `kind`, `summary`, `tags`,
 | `list_memory` | `scope?`, `group?`, `project?`, `kind?`, `include_inactive?`, `limit?` | `total`, `returned` and the entries in scope, durable kinds first |
 | `list_groups` | `project?` | Groups the project belongs to, with their members |
 | `get_entry` | `id` | Full entry plus `supersedes`, `superseded_by`, `events` |
-| `append_memory` | `kind`, `summary`, `body?`, `tags?`, `supersedes?`, `project?` or `group?` | The new entry's id and card |
-| `retract_memory` | `id`, `reason` | The updated card |
+| `append_memory` | `kind`, `summary`, `body?`, `tags?`, `supersedes?`, `project?` or `group?` | The new entry, as `get_entry` returns it |
+| `retract_memory` | `id`, `reason` | The retracted entry, as `get_entry` returns it |
 | `get_active_tags` | `project?`, `scope?`, `group?`, `limit?` | Tags of active entries in scope: uses in the last 60 days, then total uses (default 40, max 200) |
 
 `project` is optional everywhere; when omitted it is resolved as in section 7.
@@ -141,8 +142,8 @@ as in section 4. Entries come in decay order: `decision`, `architecture` and
 `howto` first, then `bugfix` and `note`, each part newest first, so a limit
 cuts fading entries before durable ones. Limit: default 50, maximum 200.
 `total` counts every entry that matches; when it exceeds `returned`, narrow
-with `kind` or `scope`. An entry carries `id`, `project`, `kind`, `summary`,
-`tags`, `age_days`, and, when not `active`, `status` and `superseded_by`.
+with `kind` or `scope`. An entry carries the fields of a search card
+(section 4) except `score`.
 `munin list` keeps its own order, newest first, for reading in a terminal.
 
 Errors are returned as MCP tool errors with a message the agent can act on:
