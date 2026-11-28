@@ -72,7 +72,14 @@ git push origin vX.Y.Z
   Linux, runs each binary once against a scratch database, and packs it with
   `LICENSE`, `README.md` and `CHANGELOG.md` into
   `munin-vX.Y.Z-<target>.tar.gz` with a `.sha256` next to it;
-- creates the GitHub release with the archives and the changelog section.
+- creates the GitHub release with the archives and the changelog section;
+- publishes the crate `munin-mcp` to crates.io through trusted publishing:
+  the job gets a short-lived token from crates.io over OIDC, so no API token
+  is stored in the repository.
+
+Trusted publishing is set up once on crates.io, in the crate's Settings ->
+Trusted Publishing -> Add -> GitHub: owner `alnovis`, repository `munin`,
+workflow `release.yml`, no environment.
 
 A failed release is fixed with a new patch version. A tag that has been pushed
 is never moved or reused.

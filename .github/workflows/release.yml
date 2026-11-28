@@ -149,3 +149,26 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
           fail_on_unmatched_files: true
+
+  # Step 4: the crate on crates.io, through trusted publishing (no stored token)
+  publish:
+    name: Publish to crates.io
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      - name: Publish
+        run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
